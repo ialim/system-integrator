@@ -8,12 +8,15 @@ export class ProductsController {
   @Get()
   async list(
     @Query('limit') limitRaw?: string,
-    @Query('offset') offsetRaw?: string
+    @Query('offset') offsetRaw?: string,
+    @Query('q') q?: string,
+    @Query('category') category?: string,
+    @Query('brand') brand?: string
   ) {
     const limit = Math.min(Number(limitRaw) || 20, 100);
     const offset = Number(offsetRaw) || 0;
-    const items = await this.productsService.list(limit, offset);
-    return { items, limit, offset };
+    const { items, total } = await this.productsService.list({ limit, offset, q, category, brand });
+    return { items, limit, offset, total };
   }
 
   @Get(':sku')

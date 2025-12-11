@@ -9,7 +9,8 @@
     "build": "nest build",
     "lint": "eslint \"src/**/*.ts\"",
     "format": "prettier --write \"src/**/*.ts\"",
-    "seed:products": "ts-node --transpile-only src/seed.ts"
+    "seed:products": "ts-node --transpile-only src/seed.ts",
+    "migrate": "node scripts/run-migrations.mjs"
   },
   "dependencies": {
     "@nestjs/common": "^10.4.8",
