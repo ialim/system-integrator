@@ -17,12 +17,14 @@ export async function fetchProducts(params?: {
   category?: string;
   brand?: string;
   limit?: number;
+  offset?: number;
 }) {
   const search = new URLSearchParams();
   if (params?.q) search.set('q', params.q);
   if (params?.category) search.set('category', params.category);
   if (params?.brand) search.set('brand', params.brand);
   if (params?.limit) search.set('limit', String(params.limit));
+  if (params?.offset) search.set('offset', String(params.offset));
 
   const url = `${API_URL}/products${search.toString() ? `?${search.toString()}` : ''}`;
 
@@ -32,4 +34,13 @@ export async function fetchProducts(params?: {
   }
   const data = await res.json();
   return data as { items: Product[]; total: number; limit: number; offset: number };
+}
+
+export async function fetchProduct(sku: string) {
+  const url = `${API_URL}/products/${encodeURIComponent(sku)}`;
+  const res = await fetch(url, { next: { revalidate: 300 } });
+  if (!res.ok) {
+    throw new Error(`Failed to fetch product (${res.status})`);
+  }
+  return (await res.json()) as Product;
 }

@@ -1,13 +1,22 @@
 import { fetchProducts } from "../lib/products";
 
-export default async function Home() {
+export default async function Home({
+  searchParams
+}: {
+  searchParams?: { q?: string; category?: string; brand?: string };
+}) {
   let data:
     | { items: Awaited<ReturnType<typeof fetchProducts>>["items"]; total: number }
     | null = null;
   let error: string | null = null;
 
   try {
-    const res = await fetchProducts({ limit: 8 });
+    const res = await fetchProducts({
+      limit: 12,
+      q: searchParams?.q,
+      category: searchParams?.category,
+      brand: searchParams?.brand
+    });
     data = { items: res.items, total: res.total };
   } catch (err) {
     error = err instanceof Error ? err.message : "Failed to load products";
@@ -34,7 +43,8 @@ export default async function Home() {
             </div>
             <div style={{ color: "#7bb5ff", fontWeight: 600 }}>{data ? `${data.total} items` : ""}</div>
           </div>
-          {error && <div style={{ color: "#f59e0b" }}>{error}</div>}
+          <FilterForm defaults={searchParams} />
+          {error && <div style={{ color: "#f59e0b", marginTop: "0.5rem" }}>{error}</div>}
           <div style={{ display: "grid", gap: "0.75rem", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))" }}>
             {data?.items?.map((p) => (
               <ProductCard key={p.sku} product={p} />
@@ -50,7 +60,10 @@ export default async function Home() {
 function ProductCard({ product }: { product: any }) {
   const brand = product?.facets?.find((f: any) => f.key === "brand")?.value;
   return (
-    <div style={{ padding: "1rem", borderRadius: "12px", background: "#161f38", border: "1px solid #1f2940" }}>
+    <a
+      href={`/products/${encodeURIComponent(product.sku)}`}
+      style={{ padding: "1rem", borderRadius: "12px", background: "#161f38", border: "1px solid #1f2940", display: "block" }}
+    >
       <div style={{ display: "flex", justifyContent: "space-between", gap: "0.5rem" }}>
         <div style={{ fontWeight: 700 }}>{product.name}</div>
         <div style={{ color: "#7bb5ff", fontSize: "0.9rem" }}>{product.sku}</div>
@@ -71,6 +84,41 @@ function ProductCard({ product }: { product: any }) {
           <span style={{ fontSize: "0.85rem", color: "#9fb3d8" }}>{product.stock_band}</span>
         )}
       </div>
-    </div>
+    </a>
   );
 }
+
+function FilterForm({ defaults }: { defaults?: { q?: string; category?: string; brand?: string } }) {
+  return (
+    <form
+      method="get"
+      style={{
+        display: "grid",
+        gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+        gap: "0.5rem",
+        marginBottom: "1rem"
+      }}
+    >
+      <input
+        type="text"
+        name="q"
+        defaultValue={defaults?.q || ""}
+        placeholder="Search name/description"
+        style={inputStyle}
+      />
+      <input type="text" name="brand" defaultValue={defaults?.brand || ""} placeholder="Brand (e.g., Golden Security)" style={inputStyle} />
+      <input type="text" name="category" defaultValue={defaults?.category || ""} placeholder="Category" style={inputStyle} />
+      <button type="submit" style={{ background: "#1f6feb", color: "#fff", border: "none", borderRadius: "8px", padding: "0.75rem" }}>
+        Apply
+      </button>
+    </form>
+  );
+}
+
+const inputStyle: React.CSSProperties = {
+  background: "#0e1427",
+  border: "1px solid #1f2940",
+  color: "#f5f7fb",
+  padding: "0.75rem",
+  borderRadius: "8px"
+};

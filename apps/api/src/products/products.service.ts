@@ -55,7 +55,7 @@ export class ProductsService {
     }
 
     if (params.brand) {
-      values.push(params.brand);
+      values.push(`%${params.brand}%`);
       where.push(
         `EXISTS (SELECT 1 FROM jsonb_array_elements(facets) f WHERE f->>'key' = 'brand' AND f->>'value' ILIKE $${values.length})`
       );
