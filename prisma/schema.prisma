@@ -1,0 +1,66 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  OWNER
+  ESTIMATOR
+  TECH
+}
+
+model Org {
+  id             Int      @id @default(autoincrement())
+  name           String
+  pricingTier    String?
+  taxStatus      String?
+  paymentTerms   String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  users          User[]
+}
+
+model User {
+  id           Int      @id @default(autoincrement())
+  email        String   @unique
+  name         String?
+  passwordHash String
+  role         Role     @default(ESTIMATOR)
+  orgId        Int
+  org          Org      @relation(fields: [orgId], references: [id])
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Product {
+  id               Int       @id @default(autoincrement()) @map("id")
+  sku              String    @unique
+  name             String
+  description      String?   @db.Text
+  category         String?
+  unitCost         Decimal?  @map("unit_cost")
+  currency         String?
+  msrp             Decimal?
+  margin           Decimal?
+  baseMargin       Decimal?  @map("base_margin")
+  tierBaseDiscount Decimal?  @map("tier_base_discount")
+  tierPlusDiscount Decimal?  @map("tier_plus_discount")
+  volumeBreaks     Json?     @map("volume_breaks")
+  leadTimeDays     Int?      @map("lead_time_days")
+  stockBand        String?   @map("stock_band")
+  facets           Json?
+  variantFacets    Json?     @map("variant_facets")
+  compatRequires   Json?     @map("compat_requires")
+  compatBlocks     Json?     @map("compat_blocks")
+  bundleComponents String?   @map("bundle_components")
+  supplier         Json?
+  pricing          Json?
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime  @default(now()) @updatedAt @map("updated_at")
+
+  @@map("products")
+}

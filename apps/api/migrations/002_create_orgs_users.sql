@@ -1,0 +1,20 @@
+CREATE TABLE IF NOT EXISTS orgs (
+  id SERIAL PRIMARY KEY,
+  name TEXT NOT NULL,
+  pricingTier TEXT,
+  taxStatus TEXT,
+  paymentTerms TEXT,
+  createdAt TIMESTAMP DEFAULT NOW(),
+  updatedAt TIMESTAMP DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS users (
+  id SERIAL PRIMARY KEY,
+  email TEXT UNIQUE NOT NULL,
+  name TEXT,
+  passwordHash TEXT NOT NULL,
+  role TEXT NOT NULL DEFAULT 'ESTIMATOR',
+  orgId INTEGER REFERENCES orgs(id) ON DELETE CASCADE,
+  createdAt TIMESTAMP DEFAULT NOW(),
+  updatedAt TIMESTAMP DEFAULT NOW()
+);
