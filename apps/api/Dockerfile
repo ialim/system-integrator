@@ -13,6 +13,7 @@ RUN pnpm install --frozen-lockfile
 
 # Build
 COPY . .
+RUN pnpm prisma:generate
 RUN pnpm --filter api build
 
 FROM node:20-alpine
