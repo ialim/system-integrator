@@ -17,12 +17,15 @@ RUN pnpm --filter web build
 
 FROM node:20-alpine
 WORKDIR /app
-COPY --from=base /app/node_modules ./node_modules
-COPY --from=base /app/apps/web/node_modules ./apps/web/node_modules
-COPY --from=base /app/apps/web/.next ./apps/web/.next
-COPY --from=base /app/apps/web/public ./apps/web/public
-COPY --from=base /app/apps/web/package.json ./apps/web/package.json
+ARG WATCH=false
+ENV WATCH=${WATCH}
+ENV CHOKIDAR_USEPOLLING=1
+
+COPY --from=base /app /app
+
 WORKDIR /app/apps/web
 ENV PORT=3000
 EXPOSE 3000
-CMD ["node", "node_modules/next/dist/bin/next", "start"]
+
+# If WATCH=true, run Next.js dev server with polling for containerized envs.
+CMD ["sh", "-c", "if [ \"$WATCH\" = \"true\" ]; then node node_modules/next/dist/bin/next dev -H 0.0.0.0 -p 3000; else node node_modules/next/dist/bin/next start; fi"]
