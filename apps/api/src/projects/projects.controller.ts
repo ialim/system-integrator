@@ -42,4 +42,11 @@ export class ProjectsController {
     const { orgId, userId } = req.user;
     return this.projectsService.addLineItem(orgId, userId, { ...body, projectId: Number(id) });
   }
+
+  @Roles(Role.OWNER, Role.ESTIMATOR)
+  @Post(':id/bom-versions')
+  snapshotBom(@Request() req: AuthReq, @Param('id') id: string) {
+    const { orgId, userId } = req.user;
+    return this.projectsService.snapshotBom(orgId, Number(id), userId);
+  }
 }

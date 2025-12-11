@@ -48,7 +48,9 @@ export class ProjectsService {
             room: true
           }
         },
-        bomVersions: true
+        bomVersions: {
+          orderBy: { createdAt: 'desc' }
+        }
       }
     });
     if (!project) throw new NotFoundException('Project not found');
@@ -75,5 +77,43 @@ export class ProjectsService {
       }
     });
     return lineItem;
+  }
+
+  async snapshotBom(orgId: number, projectId: number, userId: number, comment?: string) {
+    const project = await this.prisma.project.findUnique({
+      where: { id: projectId },
+      include: {
+        lineItems: {
+          include: { product: true, room: true }
+        }
+      }
+    });
+    if (!project) throw new NotFoundException('Project not found');
+    if (project.orgId !== orgId) throw new ForbiddenException();
+
+    const snapshot = {
+      project: {
+        id: project.id,
+        name: project.name,
+        status: project.status
+      },
+      lineItems: project.lineItems
+    };
+
+    const totals = {
+      subtotal: project.lineItems.reduce((sum, li) => {
+        const price = li.unitPrice ? Number(li.unitPrice) : 0;
+        return sum + price * li.qty;
+      }, 0)
+    };
+
+    return this.prisma.bOMVersion.create({
+      data: {
+        projectId: project.id,
+        snapshot,
+        totals,
+        createdBy: userId
+      }
+    });
   }
 }
