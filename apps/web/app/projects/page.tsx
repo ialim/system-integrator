@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
+import { Box, Button, Grid, HStack, Input, Stack, Text } from "@chakra-ui/react";
 import { createProject, fetchProjects } from "../../lib/projects";
 
 async function getToken() {
@@ -11,7 +12,7 @@ async function getToken() {
 export default async function ProjectsPage({ searchParams }: { searchParams?: { limit?: string; offset?: string } }) {
   const token = await getToken();
   if (!token) {
-    redirect("/"); // simple guard; in real app, send to login
+    redirect("/auth/login");
   }
 
   const limit = searchParams?.limit ? Number(searchParams.limit) : 10;
@@ -26,26 +27,41 @@ export default async function ProjectsPage({ searchParams }: { searchParams?: { 
   }
 
   return (
-    <main style={mainStyle}>
-      <div style={cardStyle}>
-        <h1 style={{ margin: "0 0 0.5rem" }}>Projects</h1>
-        <p style={{ margin: "0 0 1rem", color: "#9fb3d8" }}>List projects and create new ones.</p>
-        <ProjectForm token={token!} />
-        {error && <div style={{ color: "#f59e0b" }}>{error}</div>}
-        <div style={{ display: "grid", gap: "0.75rem", marginTop: "1rem" }}>
-          {data?.items?.map((p) => (
-            <div key={p.id} style={rowStyle}>
-              <div>
-                <div style={{ fontWeight: 700 }}>{p.name}</div>
-                <div style={{ color: "#9fb3d8", fontSize: "0.9rem" }}>{p.status}</div>
-              </div>
-              <div style={{ color: "#7bb5ff" }}>#{p.id}</div>
-            </div>
-          ))}
-          {!data && !error && <div style={{ color: "#9fb3d8" }}>Loading projects…</div>}
-          {data && data.items.length === 0 && <div style={{ color: "#9fb3d8" }}>No projects yet.</div>}
-        </div>
-      </div>
+    <main style={{ minHeight: "80vh" }}>
+      <Stack spacing="4">
+        <Box bg="var(--panel)" border="1px solid var(--border)" borderRadius="16px" p="5">
+          <Stack direction="row" justify="space-between" align="center" mb="3">
+            <Box>
+              <Text fontSize="lg" fontWeight="700">
+                Projects
+              </Text>
+              <Text color="var(--muted)">Create and list org projects</Text>
+            </Box>
+            <Text color="var(--accent)" fontWeight="600">
+              {data ? `${data.total} projects` : ""}
+            </Text>
+          </Stack>
+          <ProjectForm token={token!} />
+          {error && <Text color="#f59e0b">{error}</Text>}
+          <Grid templateColumns="repeat(auto-fit, minmax(260px, 1fr))" gap="3" mt="3">
+            {data?.items?.map((p) => (
+              <Box key={p.id} bg="var(--card)" border="1px solid var(--border)" borderRadius="12px" p="4">
+                <Stack spacing="1">
+                  <Text fontWeight="700">{p.name}</Text>
+                  <Text color="var(--muted)" fontSize="sm">
+                    Status: {p.status}
+                  </Text>
+                  <Text color="var(--accent)" fontSize="sm">
+                    #{p.id}
+                  </Text>
+                </Stack>
+              </Box>
+            ))}
+            {!data && !error && <Text color="var(--muted)">Loading projects…</Text>}
+            {data && data.items.length === 0 && <Text color="var(--muted)">No projects yet.</Text>}
+          </Grid>
+        </Box>
+      </Stack>
     </main>
   );
 }
@@ -60,57 +76,13 @@ function ProjectForm({ token }: { token: string }) {
   }
 
   return (
-    <form action={action} style={{ display: "flex", gap: "0.5rem", marginBottom: "1rem" }}>
-      <input name="name" placeholder="Project name" style={inputStyle} />
-      <button type="submit" style={buttonStyle}>
-        Create
-      </button>
+    <form action={action}>
+      <HStack spacing="2">
+        <Input name="name" placeholder="Project name" bg="var(--card)" borderColor="var(--border)" />
+        <Button type="submit" bg="var(--primary)" color="#fff">
+          Create
+        </Button>
+      </HStack>
     </form>
   );
 }
-
-const mainStyle: React.CSSProperties = {
-  minHeight: "100vh",
-  padding: "2rem",
-  background: "#0b1021",
-  color: "#f5f7fb"
-};
-
-const cardStyle: React.CSSProperties = {
-  maxWidth: 960,
-  margin: "0 auto",
-  background: "#111831",
-  borderRadius: "16px",
-  border: "1px solid #1f2940",
-  padding: "1.5rem",
-  display: "grid",
-  gap: "0.75rem"
-};
-
-const rowStyle: React.CSSProperties = {
-  padding: "0.75rem",
-  borderRadius: "10px",
-  background: "#161f38",
-  border: "1px solid #1f2940",
-  display: "flex",
-  justifyContent: "space-between",
-  alignItems: "center"
-};
-
-const inputStyle: React.CSSProperties = {
-  background: "#0e1427",
-  border: "1px solid #1f2940",
-  color: "#f5f7fb",
-  padding: "0.75rem",
-  borderRadius: "8px",
-  flex: 1
-};
-
-const buttonStyle: React.CSSProperties = {
-  background: "#1f6feb",
-  color: "#fff",
-  border: "none",
-  borderRadius: "8px",
-  padding: "0.75rem 1.25rem",
-  cursor: "pointer"
-};

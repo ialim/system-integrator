@@ -2,6 +2,8 @@ import { Body, Controller, Post } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { Role } from '@prisma/client';
 import { IsEmail, IsOptional, IsString, IsEnum, MinLength } from 'class-validator';
+import { JwtAuthGuard } from '../shared/jwt-auth.guard';
+import { UseGuards, Request, Get } from '@nestjs/common';
 
 class SignupDto {
   @IsEmail()
@@ -44,5 +46,11 @@ export class AuthController {
   @Post('login')
   login(@Body() body: LoginDto) {
     return this.authService.login(body);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('me')
+  me(@Request() req: any) {
+    return req.user;
   }
 }
