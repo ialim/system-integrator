@@ -25,5 +25,9 @@ pnpm-debug.log*
 .vscode
 
 # extracted supplier texts (large)
+# extracted supplier texts (large)
 /20251203 WiFi & ZigBee smart home system-Golden Security.txt
 /Minisim Pricelist - September2025.txt
+
+# supplier product assets
+/products/

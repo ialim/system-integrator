@@ -1,0 +1,24 @@
+# node_modules and build artifacts
+node_modules
+**/node_modules
+dist
+.next
+
+# VCS
+.git
+.gitignore
+
+# Env and local config
+.env
+.env.*
+!.env.example
+
+# OS/editor
+.DS_Store
+*.swp
+*.swo
+.idea
+.vscode
+
+# Large supplier assets
+products
