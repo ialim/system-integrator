@@ -1,27 +1,27 @@
-import { Inject, Injectable, Logger } from '@nestjs/common';
-import type { Pool } from 'pg';
-import { PG_POOL } from '../providers/db.provider';
+import { Injectable, Logger } from '@nestjs/common';
+import { PrismaService } from '../prisma/prisma.service';
+import { Prisma } from '@prisma/client';
 
 export type ProductRecord = {
   sku: string;
   name: string;
-  description?: string;
-  category?: string;
-  unit_cost?: number;
-  currency?: string;
-  msrp?: number;
-  margin?: number;
-  base_margin?: number;
-  tier_base_discount?: number;
-  tier_plus_discount?: number;
-  volume_breaks?: any;
-  lead_time_days?: number;
-  stock_band?: string;
+  description?: string | null;
+  category?: string | null;
+  unitCost?: any;
+  currency?: string | null;
+  msrp?: any;
+  margin?: any;
+  baseMargin?: any;
+  tierBaseDiscount?: any;
+  tierPlusDiscount?: any;
+  volumeBreaks?: any;
+  leadTimeDays?: number | null;
+  stockBand?: string | null;
   facets?: any;
-  variant_facets?: any;
-  compat_requires?: any;
-  compat_blocks?: any;
-  bundle_components?: string;
+  variantFacets?: any;
+  compatRequires?: any;
+  compatBlocks?: any;
+  bundleComponents?: string | null;
   supplier?: any;
   pricing?: any;
 };
@@ -29,7 +29,7 @@ export type ProductRecord = {
 @Injectable()
 export class ProductsService {
   private readonly logger = new Logger(ProductsService.name);
-  constructor(@Inject(PG_POOL) private readonly pool: Pool) {}
+  constructor(private readonly prisma: PrismaService) {}
 
   async list(params: {
     limit?: number;
@@ -40,47 +40,37 @@ export class ProductsService {
   }): Promise<{ items: ProductRecord[]; total: number }> {
     const limit = Math.min(params.limit ?? 20, 100);
     const offset = params.offset ?? 0;
-    const values: any[] = [];
-    const where: string[] = [];
-
+    const where: Prisma.ProductWhereInput = {};
     if (params.q) {
-      values.push(`%${params.q}%`);
-      values.push(`%${params.q}%`);
-      where.push(`(name ILIKE $${values.length - 1} OR description ILIKE $${values.length})`);
+      where.OR = [
+        { name: { contains: params.q, mode: 'insensitive' } },
+        { description: { contains: params.q, mode: 'insensitive' } }
+      ];
     }
-
     if (params.category) {
-      values.push(params.category);
-      where.push(`category = $${values.length}`);
+      where.category = params.category;
     }
-
     if (params.brand) {
-      values.push(`%${params.brand}%`);
-      where.push(
-        `EXISTS (SELECT 1 FROM jsonb_array_elements(facets) f WHERE f->>'key' = 'brand' AND f->>'value' ILIKE $${values.length})`
-      );
+      where.facets = {
+        path: '$[*]',
+        array_contains: [{ key: 'brand', value: params.brand }]
+      } as any;
     }
 
-    values.push(limit);
-    values.push(offset);
-    const whereSql = where.length ? `WHERE ${where.join(' AND ')}` : '';
-    const query = `
-      SELECT *,
-        COUNT(*) OVER() AS total_count
-      FROM products
-      ${whereSql}
-      ORDER BY name ASC
-      LIMIT $${values.length - 1}
-      OFFSET $${values.length}
-    `;
-    const result = await this.pool.query(query, values);
-    const total = result.rows[0]?.total_count ? Number(result.rows[0].total_count) : 0;
-    return { items: result.rows, total };
+    const [items, total] = await this.prisma.$transaction([
+      this.prisma.product.findMany({
+        where,
+        orderBy: { name: 'asc' },
+        skip: offset,
+        take: limit
+      }),
+      this.prisma.product.count({ where })
+    ]);
+    return { items, total };
   }
 
   async getBySku(sku: string): Promise<ProductRecord | null> {
-    const result = await this.pool.query('SELECT * FROM products WHERE sku = $1', [sku]);
-    if (!result.rowCount) return null;
-    return result.rows[0];
+    const product = await this.prisma.product.findUnique({ where: { sku } });
+    return (product as any) || null;
   }
 }

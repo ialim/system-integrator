@@ -64,3 +64,100 @@ model Product {
 
   @@map("products")
 }
+
+enum ProjectStatus {
+  DRAFT
+  QUOTED
+  ORDERED
+}
+
+model Project {
+  id         Int           @id @default(autoincrement())
+  orgId      Int
+  org        Org           @relation(fields: [orgId], references: [id])
+  name       String
+  clientMeta Json?
+  status     ProjectStatus @default(DRAFT)
+  createdBy  Int
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+  rooms      Room[]
+  lineItems  LineItem[]
+  bomVersions BOMVersion[]
+  orders     Order[]
+
+  @@map("projects")
+}
+
+model Room {
+  id        Int      @id @default(autoincrement())
+  projectId Int
+  project   Project  @relation(fields: [projectId], references: [id])
+  name      String
+  notes     String?
+
+  @@map("rooms")
+}
+
+model LineItem {
+  id         Int      @id @default(autoincrement())
+  projectId  Int
+  project    Project  @relation(fields: [projectId], references: [id])
+  roomId     Int?
+  room       Room?    @relation(fields: [roomId], references: [id])
+  productId  Int?
+  product    Product? @relation(fields: [productId], references: [id])
+  qty        Int
+  unitPrice  Decimal?
+  discounts  Json?
+  notes      String?
+  source     String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@map("line_items")
+}
+
+model BOMVersion {
+  id         Int      @id @default(autoincrement())
+  projectId  Int
+  project    Project  @relation(fields: [projectId], references: [id])
+  snapshot   Json
+  totals     Json?
+  createdBy  Int
+  createdAt  DateTime @default(now())
+
+  @@map("bom_versions")
+}
+
+enum OrderStatus {
+  DRAFT
+  SENT
+  ACCEPTED
+  FULFILLED
+  SHIPPED
+  CANCELLED
+}
+
+enum OrderType {
+  QUOTE
+  PO
+}
+
+model Order {
+  id           Int         @id @default(autoincrement())
+  projectId    Int
+  project      Project     @relation(fields: [projectId], references: [id])
+  bomVersionId Int
+  bomVersion   BOMVersion  @relation(fields: [bomVersionId], references: [id])
+  type         OrderType   @default(QUOTE)
+  status       OrderStatus @default(DRAFT)
+  shipping     Json?
+  tax          Json?
+  total        Decimal?
+  tracking     Json?
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  @@map("orders")
+}

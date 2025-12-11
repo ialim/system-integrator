@@ -9,7 +9,7 @@
     "build": "nest build",
     "lint": "eslint \"src/**/*.ts\"",
     "format": "prettier --write \"src/**/*.ts\"",
-    "seed:products": "ts-node --transpile-only src/seed.ts",
+    "seed:products": "ts-node --transpile-only src/seeds/seed-products.ts",
     "migrate": "node scripts/run-migrations.mjs"
   },
   "dependencies": {
@@ -20,6 +20,8 @@
     "@nestjs/platform-express": "^10.4.8",
     "@types/bcryptjs": "^3.0.0",
     "bcryptjs": "^3.0.3",
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.14.3",
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",
     "pg": "^8.13.1",
