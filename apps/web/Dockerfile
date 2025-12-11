@@ -2,7 +2,7 @@ FROM node:20-alpine AS base
 WORKDIR /app
 RUN corepack enable && corepack prepare pnpm@8.15.7 --activate
 
-# Install dependencies
+# Install workspace deps
 COPY package.json pnpm-workspace.yaml pnpm-lock.yaml tsconfig.base.json ./
 COPY apps/web/package.json apps/web/package.json
 COPY apps/api/package.json apps/api/package.json
@@ -11,21 +11,30 @@ COPY packages/ui/package.json packages/ui/package.json
 COPY packages/config/package.json packages/config/package.json
 RUN pnpm install --frozen-lockfile
 
-# Build web
+# Production build stage
+FROM base AS prod-build
 COPY . .
 RUN pnpm --filter web build
 
-FROM node:20-alpine
+# Production runtime
+FROM node:20-alpine AS prod
 WORKDIR /app
-ARG WATCH=false
-ENV WATCH=${WATCH}
-ENV CHOKIDAR_USEPOLLING=1
-
-COPY --from=base /app /app
-
+COPY --from=prod-build /app/node_modules ./node_modules
+COPY --from=prod-build /app/apps/web/node_modules ./apps/web/node_modules
+COPY --from=prod-build /app/apps/web/.next ./apps/web/.next
+COPY --from=prod-build /app/apps/web/public ./apps/web/public
+COPY --from=prod-build /app/apps/web/package.json ./apps/web/package.json
 WORKDIR /app/apps/web
 ENV PORT=3000
 EXPOSE 3000
+CMD ["node", "node_modules/next/dist/bin/next", "start"]
 
-# If WATCH=true, run Next.js dev server with polling for containerized envs.
-CMD ["sh", "-c", "if [ \"$WATCH\" = \"true\" ]; then node node_modules/next/dist/bin/next dev -H 0.0.0.0 -p 3000; else node node_modules/next/dist/bin/next start; fi"]
+# Development target (use with compose override)
+FROM base AS dev
+WORKDIR /app
+COPY . .
+WORKDIR /app/apps/web
+ENV PORT=3000
+ENV CHOKIDAR_USEPOLLING=1
+EXPOSE 3000
+CMD ["pnpm", "--filter", "web", "dev", "--hostname", "0.0.0.0", "--port", "3000"]
