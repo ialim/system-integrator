@@ -25,4 +25,4 @@ COPY --from=base /app/apps/web/package.json ./apps/web/package.json
 WORKDIR /app/apps/web
 ENV PORT=3000
 EXPOSE 3000
-CMD ["node", "./node_modules/.bin/next", "start"]
+CMD ["node", "node_modules/next/dist/bin/next", "start"]
