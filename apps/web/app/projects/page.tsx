@@ -56,6 +56,7 @@ function ProjectForm({ token }: { token: string }) {
     const name = formData.get("name")?.toString() || "";
     if (!name) return;
     await createProject(token, { name });
+    redirect("/projects");
   }
 
   return (
