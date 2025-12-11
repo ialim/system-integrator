@@ -1,0 +1,5 @@
+sku,name,brand,category,description,unit_cost,currency,msrp,tier_base_discount,tier_plus_discount,volume_breaks,lead_time_days,stock_band,accessories,compat_requires,compat_blocks,bundle_components
+HUB-100,Home Hub Core,Acme,Hub,"Central controller with Zigbee/Thread/Matter bridge",120,USD,199,0.05,0.1,"[{""min_qty"":10,""discount"":0.02},{""min_qty"":25,""discount"":0.04}]",7,in-stock,"ANT-100;PWR-050","",,""
+SEN-200,Door/Window Sensor,Acme,Sensors,"Matter door/window contact sensor, battery-powered",16,USD,29,0.05,0.1,"[{""min_qty"":50,""discount"":0.03}]",3,low,"BAT-CR2","HUB-100","", ""
+CAM-400,Indoor Camera Pro,VisionX,Cameras,"PoE indoor camera, ONVIF, 4MP, IR",110,USD,189,0.06,0.12,"[{""min_qty"":10,""discount"":0.02},{""min_qty"":30,""discount"":0.05}]",10,in-stock,"BRK-POE;CAB-050","NVR-800","", ""
+NVR-800,8-Channel NVR,VisionX,Recorders,"8ch NVR, 2TB, PoE, ONVIF",260,USD,399,0.07,0.12,"[{""min_qty"":5,""discount"":0.03},{""min_qty"":15,""discount"":0.05}]",14,limited,"HDD-4000","CAM-400","", ""

@@ -1,0 +1,12 @@
+{
+  "name": "system-integrator",
+  "private": true,
+  "version": "0.1.0",
+  "packageManager": "pnpm@8.15.7",
+  "scripts": {
+    "dev:web": "pnpm --filter web dev",
+    "dev:api": "pnpm --filter api start:dev",
+    "lint": "pnpm -r lint",
+    "format": "pnpm -r format"
+  }
+}

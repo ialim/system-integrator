@@ -1,0 +1,29 @@
+# dependencies
+node_modules
+
+# builds
+dist
+.next
+
+# env
+.env
+.env.local
+.env.development
+.env.production
+
+# logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# editor
+.DS_Store
+*.swp
+*.swo
+.idea
+.vscode
+
+# extracted supplier texts (large)
+/20251203 WiFi & ZigBee smart home system-Golden Security.txt
+/Minisim Pricelist - September2025.txt

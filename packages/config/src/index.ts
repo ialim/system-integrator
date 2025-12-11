@@ -1,0 +1,2 @@
+// Shared config placeholders
+export {};
