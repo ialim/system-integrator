@@ -1,7 +1,7 @@
 FROM node:20-alpine AS base
 WORKDIR /app
 RUN corepack enable && corepack prepare pnpm@8.15.7 --activate
-RUN apk add --no-cache openssl1.1-compat openssl
+RUN apk add --no-cache openssl
 
 # Install dependencies
 COPY package.json pnpm-workspace.yaml pnpm-lock.yaml tsconfig.base.json ./
@@ -19,7 +19,7 @@ RUN pnpm --filter api build
 
 FROM node:20-alpine
 WORKDIR /app
-RUN apk add --no-cache openssl1.1-compat openssl
+RUN apk add --no-cache openssl
 COPY --from=base /app/node_modules ./node_modules
 COPY --from=base /app/apps/api/node_modules ./apps/api/node_modules
 COPY --from=base /app/apps/api/dist ./apps/api/dist
