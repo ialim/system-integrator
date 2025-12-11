@@ -17,9 +17,10 @@ RUN pnpm --filter api build
 
 FROM node:20-alpine
 WORKDIR /app
-RUN corepack enable
 COPY --from=base /app/node_modules ./node_modules
+COPY --from=base /app/apps/api/node_modules ./apps/api/node_modules
 COPY --from=base /app/apps/api/dist ./apps/api/dist
+WORKDIR /app
 ENV PORT=3001
 EXPOSE 3001
-CMD ["pnpm", "--filter", "api", "start"]
+CMD ["node", "apps/api/dist/main.js"]

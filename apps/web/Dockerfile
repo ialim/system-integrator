@@ -17,11 +17,12 @@ RUN pnpm --filter web build
 
 FROM node:20-alpine
 WORKDIR /app
-RUN corepack enable
 COPY --from=base /app/node_modules ./node_modules
+COPY --from=base /app/apps/web/node_modules ./apps/web/node_modules
 COPY --from=base /app/apps/web/.next ./apps/web/.next
 COPY --from=base /app/apps/web/public ./apps/web/public
 COPY --from=base /app/apps/web/package.json ./apps/web/package.json
+WORKDIR /app/apps/web
 ENV PORT=3000
 EXPOSE 3000
-CMD ["pnpm", "--filter", "web", "start"]
+CMD ["node", "./node_modules/.bin/next", "start"]
