@@ -1,10 +1,10 @@
-import { Box, Button, Grid, GridItem, Input, InputGroup, InputLeftElement, Stack, Text, Badge } from "@chakra-ui/react";
+import { Box, Button, Grid, Input, InputGroup, InputLeftElement, Stack, Text, Badge, HStack } from "@chakra-ui/react";
 import { fetchProducts } from "../lib/products";
 
 export default async function Home({
   searchParams
 }: {
-  searchParams?: { q?: string; category?: string; brand?: string };
+  searchParams?: { q?: string; category?: string; brand?: string; offset?: string; limit?: string };
 }) {
   let data:
     | { items: Awaited<ReturnType<typeof fetchProducts>>["items"]; total: number }
@@ -13,7 +13,8 @@ export default async function Home({
 
   try {
     const res = await fetchProducts({
-      limit: 12,
+      limit: searchParams?.limit ? Number(searchParams.limit) : 12,
+      offset: searchParams?.offset ? Number(searchParams.offset) : 0,
       q: searchParams?.q,
       category: searchParams?.category,
       brand: searchParams?.brand
@@ -58,6 +59,7 @@ export default async function Home({
             ))}
             {!data && !error && <Text color="var(--muted)">Loading products…</Text>}
           </Grid>
+          {data && <Pagination total={data.total} limit={searchParams?.limit ? Number(searchParams.limit) : 12} offset={searchParams?.offset ? Number(searchParams.offset) : 0} />}
         </Box>
       </Stack>
     </main>
@@ -121,5 +123,30 @@ function FilterForm({ defaults }: { defaults?: { q?: string; category?: string; 
         </Button>
       </Grid>
     </form>
+  );
+}
+
+function Pagination({ total, limit, offset }: { total: number; limit: number; offset: number }) {
+  const nextOffset = offset + limit < total ? offset + limit : null;
+  const prevOffset = offset - limit >= 0 ? offset - limit : null;
+  const search = (o: number | null) => {
+    if (o === null) return undefined;
+    const params = new URLSearchParams();
+    params.set("offset", String(o));
+    params.set("limit", String(limit));
+    return `/?${params.toString()}`;
+  };
+  return (
+    <HStack mt="4" spacing="3">
+      <Button as="a" href={prevOffset !== null ? search(prevOffset) : undefined} isDisabled={prevOffset === null} variant="outline" color="var(--text)" borderColor="var(--border)">
+        Prev
+      </Button>
+      <Text color="var(--muted)">
+        Showing {offset + 1}-{Math.min(offset + limit, total)} of {total}
+      </Text>
+      <Button as="a" href={nextOffset !== null ? search(nextOffset) : undefined} isDisabled={nextOffset === null} variant="outline" color="var(--text)" borderColor="var(--border)">
+        Next
+      </Button>
+    </HStack>
   );
 }

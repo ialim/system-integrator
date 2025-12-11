@@ -32,3 +32,12 @@ export async function createProject(token: string, body: { name: string; clientM
   if (!res.ok) throw new Error(`Failed to create project (${res.status})`);
   return res.json();
 }
+
+export async function fetchProjectDetail(token: string, id: number) {
+  const res = await fetch(`${API_URL}/projects/${id}`, {
+    headers: { Authorization: `Bearer ${token}` },
+    cache: 'no-store'
+  });
+  if (!res.ok) throw new Error(`Failed to fetch project (${res.status})`);
+  return res.json();
+}

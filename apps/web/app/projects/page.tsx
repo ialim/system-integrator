@@ -60,6 +60,7 @@ export default async function ProjectsPage({ searchParams }: { searchParams?: { 
             {!data && !error && <Text color="var(--muted)">Loading projects…</Text>}
             {data && data.items.length === 0 && <Text color="var(--muted)">No projects yet.</Text>}
           </Grid>
+          {data && <Pagination total={data.total} limit={limit} offset={offset} />}
         </Box>
       </Stack>
     </main>
@@ -84,5 +85,30 @@ function ProjectForm({ token }: { token: string }) {
         </Button>
       </HStack>
     </form>
+  );
+}
+
+function Pagination({ total, limit, offset }: { total: number; limit: number; offset: number }) {
+  const nextOffset = offset + limit < total ? offset + limit : null;
+  const prevOffset = offset - limit >= 0 ? offset - limit : null;
+  const search = (o: number | null) => {
+    if (o === null) return undefined;
+    const params = new URLSearchParams();
+    params.set("offset", String(o));
+    params.set("limit", String(limit));
+    return `/projects?${params.toString()}`;
+  };
+  return (
+    <HStack mt="4" spacing="3">
+      <Button as="a" href={prevOffset !== null ? search(prevOffset) : undefined} isDisabled={prevOffset === null} variant="outline" color="var(--text)" borderColor="var(--border)">
+        Prev
+      </Button>
+      <Text color="var(--muted)">
+        Showing {offset + 1}-{Math.min(offset + limit, total)} of {total}
+      </Text>
+      <Button as="a" href={nextOffset !== null ? search(nextOffset) : undefined} isDisabled={nextOffset === null} variant="outline" color="var(--text)" borderColor="var(--border)">
+        Next
+      </Button>
+    </HStack>
   );
 }
