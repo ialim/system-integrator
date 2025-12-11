@@ -16,7 +16,8 @@ function buildPgConfig() {
 }
 
 async function main() {
-  const sqlPath = resolve(__dirname, '../../../sample-data/product_seed.sql');
+  const rootDir = resolve(process.cwd(), '..', '..'); // repo root when running from apps/api
+  const sqlPath = resolve(rootDir, 'sample-data/product_seed.sql');
   const sql = readFileSync(sqlPath, 'utf8');
 
   const pool = new Pool(buildPgConfig());
