@@ -1,5 +1,6 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import { Box, Button, FormControl, FormLabel, Input, Link, Stack, Text } from "@chakra-ui/react";
 
 async function action(formData: FormData) {
   "use server";
@@ -23,67 +24,34 @@ async function action(formData: FormData) {
 
 export default function LoginPage() {
   return (
-    <main style={mainStyle}>
-      <form action={action} style={cardStyle}>
-        <h1 style={{ margin: "0 0 0.5rem" }}>Login</h1>
-        <p style={{ color: "var(--muted)", margin: "0 0 1rem" }}>Access your org projects and catalog.</p>
-        <label style={labelStyle}>
-          <span>Email</span>
-          <input name="email" type="email" style={inputStyle} required />
-        </label>
-        <label style={labelStyle}>
-          <span>Password</span>
-          <input name="password" type="password" style={inputStyle} required />
-        </label>
-        <button type="submit" style={buttonStyle}>
+    <Box as="main" display="grid" placeItems="center" minH="80vh">
+      <Box as="form" action={action} w="100%" maxW="420px" bg="var(--panel)" border="1px solid var(--border)" borderRadius="14px" p="5" gap="3" display="grid">
+        <Text as="h1" fontSize="xl" fontWeight="700" m="0 0 2">
           Login
-        </button>
-        <p style={{ margin: "0.5rem 0 0", color: "var(--muted)" }}>
-          No account? <a href="/auth/signup" style={{ color: "var(--accent)" }}>Sign up</a>
-        </p>
-      </form>
-    </main>
+        </Text>
+        <Text color="var(--muted)" m="0 0 3">
+          Access your org projects and catalog.
+        </Text>
+        <Stack spacing="3">
+          <FormControl>
+            <FormLabel color="var(--muted)">Email</FormLabel>
+            <Input name="email" type="email" bg="var(--card)" borderColor="var(--border)" required />
+          </FormControl>
+          <FormControl>
+            <FormLabel color="var(--muted)">Password</FormLabel>
+            <Input name="password" type="password" bg="var(--card)" borderColor="var(--border)" required />
+          </FormControl>
+        </Stack>
+        <Button type="submit" bg="var(--primary)" color="#fff" fontWeight="700">
+          Login
+        </Button>
+        <Text color="var(--muted)" m="0">
+          No account?{" "}
+          <Link href="/auth/signup" color="var(--accent)">
+            Sign up
+          </Link>
+        </Text>
+      </Box>
+    </Box>
   );
 }
-
-const mainStyle: React.CSSProperties = {
-  display: "grid",
-  placeItems: "center",
-  minHeight: "80vh"
-};
-
-const cardStyle: React.CSSProperties = {
-  width: "100%",
-  maxWidth: 420,
-  background: "var(--panel)",
-  border: "1px solid var(--border)",
-  borderRadius: "14px",
-  padding: "1.25rem",
-  display: "grid",
-  gap: "0.75rem"
-};
-
-const labelStyle: React.CSSProperties = {
-  display: "grid",
-  gap: "0.35rem",
-  color: "var(--muted)",
-  fontSize: "0.95rem"
-};
-
-const inputStyle: React.CSSProperties = {
-  background: "var(--card)",
-  border: "1px solid var(--border)",
-  color: "var(--text)",
-  padding: "0.75rem",
-  borderRadius: "8px"
-};
-
-const buttonStyle: React.CSSProperties = {
-  background: "var(--primary)",
-  color: "#fff",
-  border: "none",
-  padding: "0.75rem",
-  borderRadius: "8px",
-  fontWeight: 700,
-  cursor: "pointer"
-};

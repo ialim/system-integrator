@@ -1,5 +1,6 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import { Box, Button, FormControl, FormLabel, Input, Link, Stack, Text } from "@chakra-ui/react";
 
 async function action(formData: FormData) {
   "use server";
@@ -25,75 +26,42 @@ async function action(formData: FormData) {
 
 export default function SignupPage() {
   return (
-    <main style={mainStyle}>
-      <form action={action} style={cardStyle}>
-        <h1 style={{ margin: "0 0 0.5rem" }}>Sign up</h1>
-        <p style={{ color: "var(--muted)", margin: "0 0 1rem" }}>Create your org to start building projects.</p>
-        <label style={labelStyle}>
-          <span>Org name</span>
-          <input name="orgName" type="text" style={inputStyle} required />
-        </label>
-        <label style={labelStyle}>
-          <span>Email</span>
-          <input name="email" type="email" style={inputStyle} required />
-        </label>
-        <label style={labelStyle}>
-          <span>Name (optional)</span>
-          <input name="name" type="text" style={inputStyle} />
-        </label>
-        <label style={labelStyle}>
-          <span>Password</span>
-          <input name="password" type="password" style={inputStyle} required />
-        </label>
-        <button type="submit" style={buttonStyle}>
+    <Box as="main" display="grid" placeItems="center" minH="80vh">
+      <Box as="form" action={action} w="100%" maxW="480px" bg="var(--panel)" border="1px solid var(--border)" borderRadius="14px" p="5" display="grid" gap="3">
+        <Text as="h1" fontSize="xl" fontWeight="700" m="0">
           Sign up
-        </button>
-        <p style={{ margin: "0.5rem 0 0", color: "var(--muted)" }}>
-          Have an account? <a href="/auth/login" style={{ color: "var(--accent)" }}>Login</a>
-        </p>
-      </form>
-    </main>
+        </Text>
+        <Text color="var(--muted)" m="0 0 2">
+          Create your org to start building projects.
+        </Text>
+        <Stack spacing="3">
+          <FormControl>
+            <FormLabel color="var(--muted)">Org name</FormLabel>
+            <Input name="orgName" type="text" bg="var(--card)" borderColor="var(--border)" required />
+          </FormControl>
+          <FormControl>
+            <FormLabel color="var(--muted)">Email</FormLabel>
+            <Input name="email" type="email" bg="var(--card)" borderColor="var(--border)" required />
+          </FormControl>
+          <FormControl>
+            <FormLabel color="var(--muted)">Name (optional)</FormLabel>
+            <Input name="name" type="text" bg="var(--card)" borderColor="var(--border)" />
+          </FormControl>
+          <FormControl>
+            <FormLabel color="var(--muted)">Password</FormLabel>
+            <Input name="password" type="password" bg="var(--card)" borderColor="var(--border)" required />
+          </FormControl>
+        </Stack>
+        <Button type="submit" bg="var(--primary)" color="#fff" fontWeight="700">
+          Sign up
+        </Button>
+        <Text color="var(--muted)" m="0">
+          Have an account?{" "}
+          <Link href="/auth/login" color="var(--accent)">
+            Login
+          </Link>
+        </Text>
+      </Box>
+    </Box>
   );
 }
-
-const mainStyle: React.CSSProperties = {
-  display: "grid",
-  placeItems: "center",
-  minHeight: "80vh"
-};
-
-const cardStyle: React.CSSProperties = {
-  width: "100%",
-  maxWidth: 480,
-  background: "var(--panel)",
-  border: "1px solid var(--border)",
-  borderRadius: "14px",
-  padding: "1.25rem",
-  display: "grid",
-  gap: "0.75rem"
-};
-
-const labelStyle: React.CSSProperties = {
-  display: "grid",
-  gap: "0.35rem",
-  color: "var(--muted)",
-  fontSize: "0.95rem"
-};
-
-const inputStyle: React.CSSProperties = {
-  background: "var(--card)",
-  border: "1px solid var(--border)",
-  color: "var(--text)",
-  padding: "0.75rem",
-  borderRadius: "8px"
-};
-
-const buttonStyle: React.CSSProperties = {
-  background: "var(--primary)",
-  color: "#fff",
-  border: "none",
-  padding: "0.75rem",
-  borderRadius: "8px",
-  fontWeight: 700,
-  cursor: "pointer"
-};

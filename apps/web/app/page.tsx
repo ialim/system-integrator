@@ -1,3 +1,4 @@
+import { Box, Button, Grid, GridItem, Input, InputGroup, InputLeftElement, Stack, Text, Badge } from "@chakra-ui/react";
 import { fetchProducts } from "../lib/products";
 
 export default async function Home({
@@ -23,36 +24,42 @@ export default async function Home({
   }
 
   return (
-    <main style={{ minHeight: "100vh", padding: "2rem", background: "#0b1021", color: "#f5f7fb" }}>
-      <div style={{ maxWidth: 1080, margin: "0 auto", display: "grid", gap: "1.5rem" }}>
-        <header style={{ background: "#111831", border: "1px solid #1f2940", borderRadius: "16px", padding: "1.5rem" }}>
-          <p style={{ letterSpacing: "0.08em", fontSize: "0.85rem", color: "#7bb5ff", margin: 0 }}>
+    <main style={{ minHeight: "100vh" }}>
+      <Stack spacing="6">
+        <Box bg="var(--panel)" border="1px solid var(--border)" borderRadius="16px" p="6">
+          <Text letterSpacing="0.08em" fontSize="sm" color="var(--accent)" m="0">
             SYSTEM INTEGRATOR WHOLESALE
-          </p>
-          <h1 style={{ margin: "0.35rem 0 0.25rem", fontSize: "2.1rem" }}>Wholesale + Project Designer</h1>
-          <p style={{ color: "#c7d2e6", margin: "0 0 0.75rem" }}>
+          </Text>
+          <Text as="h1" fontSize="2xl" fontWeight="700" m="0.35rem 0 0.25rem">
+            Wholesale + Project Designer
+          </Text>
+          <Text color="var(--muted)" m="0">
             Catalog feed from suppliers with pricing, availability, and quick BOM building.
-          </p>
-        </header>
+          </Text>
+        </Box>
 
-        <section style={{ background: "#111831", border: "1px solid #1f2940", borderRadius: "16px", padding: "1.25rem" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" }}>
-            <div>
-              <div style={{ fontSize: "1.2rem", fontWeight: 700 }}>Catalog preview</div>
-              <div style={{ color: "#9fb3d8" }}>Showing sample products from suppliers</div>
-            </div>
-            <div style={{ color: "#7bb5ff", fontWeight: 600 }}>{data ? `${data.total} items` : ""}</div>
-          </div>
+        <Box bg="var(--panel)" border="1px solid var(--border)" borderRadius="16px" p="5">
+          <Stack direction="row" justify="space-between" align="center" mb="4">
+            <Box>
+              <Text fontSize="lg" fontWeight="700">
+                Catalog
+              </Text>
+              <Text color="var(--muted)">Filter by search, brand, and category</Text>
+            </Box>
+            <Text color="var(--accent)" fontWeight="600">
+              {data ? `${data.total} items` : ""}
+            </Text>
+          </Stack>
           <FilterForm defaults={searchParams} />
-          {error && <div style={{ color: "#f59e0b", marginTop: "0.5rem" }}>{error}</div>}
-          <div style={{ display: "grid", gap: "0.75rem", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))" }}>
+          {error && <Text color="#f59e0b">{error}</Text>}
+          <Grid templateColumns="repeat(auto-fit, minmax(240px, 1fr))" gap="3" mt="3">
             {data?.items?.map((p) => (
               <ProductCard key={p.sku} product={p} />
             ))}
-            {!data && !error && <div style={{ color: "#9fb3d8" }}>Loading products…</div>}
-          </div>
-        </section>
-      </div>
+            {!data && !error && <Text color="var(--muted)">Loading products…</Text>}
+          </Grid>
+        </Box>
+      </Stack>
     </main>
   );
 }
@@ -60,65 +67,59 @@ export default async function Home({
 function ProductCard({ product }: { product: any }) {
   const brand = product?.facets?.find((f: any) => f.key === "brand")?.value;
   return (
-    <a
-      href={`/products/${encodeURIComponent(product.sku)}`}
-      style={{ padding: "1rem", borderRadius: "12px", background: "#161f38", border: "1px solid #1f2940", display: "block" }}
-    >
-      <div style={{ display: "flex", justifyContent: "space-between", gap: "0.5rem" }}>
-        <div style={{ fontWeight: 700 }}>{product.name}</div>
-        <div style={{ color: "#7bb5ff", fontSize: "0.9rem" }}>{product.sku}</div>
-      </div>
-      {brand && <div style={{ color: "#9fb3d8", fontSize: "0.9rem" }}>{brand}</div>}
-      {product.category && (
-        <div style={{ color: "#c7d2e6", fontSize: "0.9rem", marginTop: "0.25rem" }}>{product.category}</div>
-      )}
-      <div style={{ color: "#d5def0", fontSize: "0.95rem", marginTop: "0.5rem" }}>
-        {product.description?.slice(0, 140) || "No description"}
-        {product.description && product.description.length > 140 ? "…" : ""}
-      </div>
-      <div style={{ marginTop: "0.75rem", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <div style={{ color: "#7bb5ff", fontWeight: 700 }}>
-          {product.currency || ""} {product.msrp || product.unit_cost || ""}
-        </div>
-        {product.stock_band && (
-          <span style={{ fontSize: "0.85rem", color: "#9fb3d8" }}>{product.stock_band}</span>
+    <Box as="a" href={`/products/${encodeURIComponent(product.sku)}`} bg="var(--card)" border="1px solid var(--border)" borderRadius="12px" p="4">
+      <Stack spacing="2">
+        <Stack direction="row" justify="space-between">
+          <Text fontWeight="700">{product.name}</Text>
+          <Text color="var(--accent)" fontSize="sm">
+            {product.sku}
+          </Text>
+        </Stack>
+        {brand && (
+          <Text color="var(--muted)" fontSize="sm">
+            {brand}
+          </Text>
         )}
-      </div>
-    </a>
+        {product.category && (
+          <Text color="var(--muted)" fontSize="sm">
+            {product.category}
+          </Text>
+        )}
+        <Text color="#d5def0" fontSize="sm">
+          {product.description?.slice(0, 140) || "No description"}
+          {product.description && product.description.length > 140 ? "…" : ""}
+        </Text>
+        <Stack direction="row" justify="space-between" align="center">
+          <Text color="var(--accent)" fontWeight="700">
+            {product.currency || ""} {product.msrp || product.unit_cost || ""}
+          </Text>
+          {product.stock_band && (
+            <Badge colorScheme="blue" variant="outline">
+              {product.stock_band}
+            </Badge>
+          )}
+        </Stack>
+      </Stack>
+    </Box>
   );
 }
 
 function FilterForm({ defaults }: { defaults?: { q?: string; category?: string; brand?: string } }) {
   return (
-    <form
-      method="get"
-      style={{
-        display: "grid",
-        gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
-        gap: "0.5rem",
-        marginBottom: "1rem"
-      }}
-    >
-      <input
-        type="text"
-        name="q"
-        defaultValue={defaults?.q || ""}
-        placeholder="Search name/description"
-        style={inputStyle}
-      />
-      <input type="text" name="brand" defaultValue={defaults?.brand || ""} placeholder="Brand (e.g., Golden Security)" style={inputStyle} />
-      <input type="text" name="category" defaultValue={defaults?.category || ""} placeholder="Category" style={inputStyle} />
-      <button type="submit" style={{ background: "#1f6feb", color: "#fff", border: "none", borderRadius: "8px", padding: "0.75rem" }}>
-        Apply
-      </button>
+    <form method="get">
+      <Grid templateColumns="repeat(auto-fit, minmax(220px, 1fr))" gap="2">
+        <InputGroup>
+          <InputLeftElement pointerEvents="none" color="var(--muted)">
+            🔍
+          </InputLeftElement>
+          <Input name="q" defaultValue={defaults?.q || ""} placeholder="Search name/description" bg="var(--card)" borderColor="var(--border)" />
+        </InputGroup>
+        <Input name="brand" defaultValue={defaults?.brand || ""} placeholder="Brand (e.g., Golden Security)" bg="var(--card)" borderColor="var(--border)" />
+        <Input name="category" defaultValue={defaults?.category || ""} placeholder="Category" bg="var(--card)" borderColor="var(--border)" />
+        <Button type="submit" bg="var(--primary)" color="#fff">
+          Apply
+        </Button>
+      </Grid>
     </form>
   );
 }
-
-const inputStyle: React.CSSProperties = {
-  background: "#0e1427",
-  border: "1px solid #1f2940",
-  color: "#f5f7fb",
-  padding: "0.75rem",
-  borderRadius: "8px"
-};
