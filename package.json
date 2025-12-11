@@ -7,6 +7,10 @@
     "dev:web": "pnpm --filter web dev",
     "dev:api": "pnpm --filter api start:dev",
     "lint": "pnpm -r lint",
-    "format": "pnpm -r format"
+    "format": "pnpm -r format",
+    "seed:products": "node scripts/import-product-sample.mjs"
+  },
+  "dependencies": {
+    "csv-parse": "^5.5.6"
   }
 }
