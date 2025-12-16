@@ -1,152 +1,162 @@
 import { Box, Button, Grid, Input, InputGroup, InputLeftElement, Stack, Text, Badge, HStack } from "@chakra-ui/react";
-import { fetchProducts } from "../lib/products";
+import Link from "next/link";
+import { SearchIcon } from "../components/icons";
+import { fetchProducts, fetchProductFamilies, Product, ProductFamily } from "../lib/products";
+import { ProductFamilyCard } from "../components/ProductFamilyCard";
 
 export default async function Home({
   searchParams
 }: {
   searchParams?: { q?: string; category?: string; brand?: string; offset?: string; limit?: string };
 }) {
-  let data:
-    | { items: Awaited<ReturnType<typeof fetchProducts>>["items"]; total: number }
-    | null = null;
+  const limit = searchParams?.limit ? Number(searchParams.limit) : 20;
+  const offset = searchParams?.offset ? Number(searchParams.offset) : 0;
+  const categoryFilter = searchParams?.category || "";
+
+  let families: Array<{ family: ProductFamily; variants: Product[] }> = [];
+  let productsFallback: Product[] = [];
+  let total = 0;
   let error: string | null = null;
 
   try {
-    const res = await fetchProducts({
-      limit: searchParams?.limit ? Number(searchParams.limit) : 12,
-      offset: searchParams?.offset ? Number(searchParams.offset) : 0,
+    const res = await fetchProductFamilies({
       q: searchParams?.q,
-      category: searchParams?.category,
+      category: categoryFilter || undefined,
       brand: searchParams?.brand
     });
-    data = { items: res.items, total: res.total };
-  } catch (err) {
-    error = err instanceof Error ? err.message : "Failed to load products";
+    families = res.items;
+    total = families.length;
+  } catch {
+    // fall back to flat products if family endpoint fails
+    try {
+      const res = await fetchProducts({
+        limit,
+        offset,
+        q: searchParams?.q,
+        category: categoryFilter || undefined,
+        brand: searchParams?.brand
+      });
+      productsFallback = res.items;
+      total = res.total;
+    } catch (err) {
+      error = err instanceof Error ? err.message : "Failed to load products";
+    }
   }
+
+  const categories =
+    families.length > 0
+      ? Array.from(
+          new Set(
+            families
+              .map((f) => f.family.category || f.variants[0]?.category)
+              .filter(Boolean)
+              .map((c) => c as string)
+          )
+        )
+      : Array.from(new Set(productsFallback.map((p) => p.category || "").filter(Boolean)));
+  const filteredFamilies = categoryFilter
+    ? families.filter((f) => (f.family.category || f.variants[0]?.category || "").toLowerCase() === categoryFilter.toLowerCase())
+    : families;
+
+  const familiesToRender =
+    filteredFamilies.length > 0
+      ? filteredFamilies
+      : productsFallback.length
+      ? productsFallback.map((p) => ({
+          family: {
+            id: p.familyId || null,
+            name: p.family?.name || p.name,
+            brand: p.facets?.find((f) => f.key === "brand")?.value || null,
+            category: p.category || null,
+            description: p.description,
+            defaultImage: null,
+            attributes: p.variantFacets || null
+          },
+          variants: [p]
+        }))
+      : [];
 
   return (
     <main style={{ minHeight: "100vh" }}>
       <Stack spacing="6">
-        <Box bg="var(--panel)" border="1px solid var(--border)" borderRadius="16px" p="6">
-          <Text letterSpacing="0.08em" fontSize="sm" color="var(--accent)" m="0">
-            SYSTEM INTEGRATOR WHOLESALE
-          </Text>
-          <Text as="h1" fontSize="2xl" fontWeight="700" m="0.35rem 0 0.25rem">
-            Wholesale + Project Designer
-          </Text>
-          <Text color="var(--muted)" m="0">
-            Catalog feed from suppliers with pricing, availability, and quick BOM building.
-          </Text>
+        <Box bg="var(--panel)" border="1px solid var(--border)" borderRadius="16px" p="6" className="glow-card">
+          <Stack direction={{ base: "column", md: "row" }} justify="space-between" align={{ base: "flex-start", md: "center" }}>
+            <Stack spacing="1">
+              <Text letterSpacing="0.08em" fontSize="sm" color="var(--accent)" m="0">
+                PRODUCT CATALOG
+              </Text>
+              <Text as="h1" fontSize="2xl" fontWeight="800" m="0.35rem 0 0.25rem">
+                Browse and add wholesale products to your projects.
+              </Text>
+              <Text color="var(--muted)" m="0">
+                Search by name, filter by category, and pick variants before adding.
+              </Text>
+            </Stack>
+            <Text color="var(--accent)" fontWeight="700">
+              {total ? `${total} items` : ""}
+            </Text>
+          </Stack>
         </Box>
 
         <Box bg="var(--panel)" border="1px solid var(--border)" borderRadius="16px" p="5">
-          <Stack direction="row" justify="space-between" align="center" mb="4">
-            <Box>
-              <Text fontSize="lg" fontWeight="700">
-                Catalog
-              </Text>
-              <Text color="var(--muted)">Filter by search, brand, and category</Text>
-            </Box>
-            <Text color="var(--accent)" fontWeight="600">
-              {data ? `${data.total} items` : ""}
-            </Text>
+          <Stack spacing="4">
+            <HStack justify="space-between" align="center">
+              <CategoryFilters categories={categories} active={categoryFilter} />
+              <Box minW="260px">
+                <FilterForm defaults={searchParams} />
+              </Box>
+            </HStack>
+            {error && <Text color="#f59e0b">{error}</Text>}
+            <Grid templateColumns="repeat(auto-fit, minmax(260px, 1fr))" gap="4">
+              {familiesToRender.map((fam) => (
+                <ProductFamilyCard key={`${fam.family.name}-${fam.family.brand || ""}`} family={fam.family} variants={fam.variants} />
+              ))}
+              {!familiesToRender.length && !error && <Text color="var(--muted)">No products found.</Text>}
+            </Grid>
           </Stack>
-          <FilterForm defaults={searchParams} />
-          {error && <Text color="#f59e0b">{error}</Text>}
-          <Grid templateColumns="repeat(auto-fit, minmax(240px, 1fr))" gap="3" mt="3">
-            {data?.items?.map((p) => (
-              <ProductCard key={p.sku} product={p} />
-            ))}
-            {!data && !error && <Text color="var(--muted)">Loading products…</Text>}
-          </Grid>
-          {data && <Pagination total={data.total} limit={searchParams?.limit ? Number(searchParams.limit) : 12} offset={searchParams?.offset ? Number(searchParams.offset) : 0} />}
         </Box>
       </Stack>
     </main>
   );
 }
 
-function ProductCard({ product }: { product: any }) {
-  const brand = product?.facets?.find((f: any) => f.key === "brand")?.value;
-  return (
-    <Box as="a" href={`/products/${encodeURIComponent(product.sku)}`} bg="var(--card)" border="1px solid var(--border)" borderRadius="12px" p="4">
-      <Stack spacing="2">
-        <Stack direction="row" justify="space-between">
-          <Text fontWeight="700">{product.name}</Text>
-          <Text color="var(--accent)" fontSize="sm">
-            {product.sku}
-          </Text>
-        </Stack>
-        {brand && (
-          <Text color="var(--muted)" fontSize="sm">
-            {brand}
-          </Text>
-        )}
-        {product.category && (
-          <Text color="var(--muted)" fontSize="sm">
-            {product.category}
-          </Text>
-        )}
-        <Text color="#d5def0" fontSize="sm">
-          {product.description?.slice(0, 140) || "No description"}
-          {product.description && product.description.length > 140 ? "…" : ""}
-        </Text>
-        <Stack direction="row" justify="space-between" align="center">
-          <Text color="var(--accent)" fontWeight="700">
-            {product.currency || ""} {product.msrp || product.unit_cost || ""}
-          </Text>
-          {product.stock_band && (
-            <Badge colorScheme="blue" variant="outline">
-              {product.stock_band}
-            </Badge>
-          )}
-        </Stack>
-      </Stack>
-    </Box>
-  );
-}
-
 function FilterForm({ defaults }: { defaults?: { q?: string; category?: string; brand?: string } }) {
   return (
     <form method="get">
-      <Grid templateColumns="repeat(auto-fit, minmax(220px, 1fr))" gap="2">
-        <InputGroup>
-          <InputLeftElement pointerEvents="none" color="var(--muted)">
-            🔍
-          </InputLeftElement>
-          <Input name="q" defaultValue={defaults?.q || ""} placeholder="Search name/description" bg="var(--card)" borderColor="var(--border)" />
-        </InputGroup>
-        <Input name="brand" defaultValue={defaults?.brand || ""} placeholder="Brand (e.g., Golden Security)" bg="var(--card)" borderColor="var(--border)" />
-        <Input name="category" defaultValue={defaults?.category || ""} placeholder="Category" bg="var(--card)" borderColor="var(--border)" />
-        <Button type="submit" bg="var(--primary)" color="#fff">
-          Apply
-        </Button>
-      </Grid>
+      <InputGroup>
+        <InputLeftElement pointerEvents="none" color="var(--muted)">
+          <SearchIcon />
+        </InputLeftElement>
+        <Input name="q" defaultValue={defaults?.q || ""} placeholder="Search products..." bg="var(--card)" borderColor="var(--border)" />
+      </InputGroup>
     </form>
   );
 }
 
-function Pagination({ total, limit, offset }: { total: number; limit: number; offset: number }) {
-  const nextOffset = offset + limit < total ? offset + limit : null;
-  const prevOffset = offset - limit >= 0 ? offset - limit : null;
-  const search = (o: number | null) => {
-    if (o === null) return undefined;
-    const params = new URLSearchParams();
-    params.set("offset", String(o));
-    params.set("limit", String(limit));
-    return `/?${params.toString()}`;
-  };
+function CategoryFilters({ categories, active }: { categories: string[]; active: string }) {
+  const pills = ["All", ...categories];
   return (
-    <HStack mt="4" spacing="3">
-      <Button as="a" href={prevOffset !== null ? search(prevOffset) : undefined} isDisabled={prevOffset === null} variant="outline" color="var(--text)" borderColor="var(--border)">
-        Prev
-      </Button>
-      <Text color="var(--muted)">
-        Showing {offset + 1}-{Math.min(offset + limit, total)} of {total}
-      </Text>
-      <Button as="a" href={nextOffset !== null ? search(nextOffset) : undefined} isDisabled={nextOffset === null} variant="outline" color="var(--text)" borderColor="var(--border)">
-        Next
-      </Button>
+    <HStack spacing="2" flexWrap="wrap">
+      {pills.map((cat) => {
+        const isAll = cat === "All";
+        const isActive = (isAll && !active) || (!isAll && active && active.toLowerCase() === cat.toLowerCase());
+        const href = isAll ? "/" : `/?category=${encodeURIComponent(cat)}`;
+        return (
+          <Button
+            key={cat}
+            as={Link}
+            href={href}
+            size="sm"
+            variant={isActive ? "solid" : "outline"}
+            bg={isActive ? "rgba(45,107,255,0.18)" : "transparent"}
+            color={isActive ? "#fff" : "var(--muted)"}
+            borderColor="var(--border)"
+            _hover={{ bg: "rgba(255,255,255,0.05)", color: "#fff" }}
+          >
+            {cat}
+          </Button>
+        );
+      })}
     </HStack>
   );
 }

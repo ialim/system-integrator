@@ -17,14 +17,21 @@ async function action(formData: FormData) {
   });
 
   if (!res.ok) {
-    throw new Error("Signup failed");
+    let msg = "Signup failed";
+    try {
+      const body = await res.json();
+      msg = body?.message || msg;
+    } catch {
+      // ignore parse error
+    }
+    redirect(`/auth/signup?error=${encodeURIComponent(msg)}`);
   }
   const data = await res.json();
   cookies().set("token", data.access_token, { httpOnly: true, path: "/" });
   redirect("/projects");
 }
 
-export default function SignupPage() {
+export default function SignupPage({ searchParams }: { searchParams?: { error?: string } }) {
   return (
     <Box as="main" display="grid" placeItems="center" minH="80vh">
       <Box as="form" action={action} w="100%" maxW="480px" bg="var(--panel)" border="1px solid var(--border)" borderRadius="14px" p="5" display="grid" gap="3">
@@ -34,6 +41,11 @@ export default function SignupPage() {
         <Text color="var(--muted)" m="0 0 2">
           Create your org to start building projects.
         </Text>
+        {searchParams?.error && (
+          <Text color="#f59e0b" m="0">
+            {searchParams.error}
+          </Text>
+        )}
         <Stack spacing="3">
           <FormControl>
             <FormLabel color="var(--muted)">Org name</FormLabel>

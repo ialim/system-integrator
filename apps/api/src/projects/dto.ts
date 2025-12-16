@@ -11,9 +11,10 @@ export class CreateProjectDto {
 }
 
 export class AddLineItemDto {
+  @IsOptional()
   @IsInt()
   @Min(1)
-  projectId!: number;
+  projectId?: number;
 
   @IsOptional()
   @IsInt()
@@ -30,4 +31,31 @@ export class AddLineItemDto {
   @IsOptional()
   @IsString()
   notes?: string;
+}
+
+export class CreateRoomDto {
+  @IsString()
+  @IsNotEmpty()
+  name!: string;
+}
+
+export class UpdateLineItemDto {
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  qty?: number;
+
+  @IsOptional()
+  @IsInt()
+  roomId?: number;
+
+  @IsOptional()
+  @IsString()
+  notes?: string;
+}
+
+export class UpdateRoomDto {
+  @IsString()
+  @IsNotEmpty()
+  name!: string;
 }

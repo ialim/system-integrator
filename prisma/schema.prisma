@@ -14,27 +14,31 @@ enum Role {
 }
 
 model Org {
-  id             Int      @id @default(autoincrement())
+  id             Int       @id @default(autoincrement())
   name           String
-  pricingTier    String?
-  taxStatus      String?
-  paymentTerms   String?
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  pricingTier    String?   @map("pricingtier")
+  taxStatus      String?   @map("taxstatus")
+  paymentTerms   String?   @map("paymentterms")
+  createdAt      DateTime  @default(now()) @map("createdat")
+  updatedAt      DateTime  @updatedAt @map("updatedat")
   users          User[]
   projects       Project[]
+
+  @@map("orgs")
 }
 
 model User {
   id           Int      @id @default(autoincrement())
   email        String   @unique
   name         String?
-  passwordHash String
+  passwordHash String   @map("passwordhash")
   role         Role     @default(ESTIMATOR)
-  orgId        Int
+  orgId        Int      @map("orgid")
   org          Org      @relation(fields: [orgId], references: [id])
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  createdAt    DateTime @default(now()) @map("createdat")
+  updatedAt    DateTime @updatedAt @map("updatedat")
+
+  @@map("users")
 }
 
 model Product {
@@ -43,6 +47,8 @@ model Product {
   name             String
   description      String?   @db.Text
   category         String?
+  familyId         Int?      @map("family_id")
+  family           ProductFamily? @relation(fields: [familyId], references: [id])
   unitCost         Decimal?  @map("unit_cost")
   currency         String?
   msrp             Decimal?
@@ -63,37 +69,55 @@ model Product {
   createdAt        DateTime  @default(now()) @map("created_at")
   updatedAt        DateTime  @default(now()) @updatedAt @map("updated_at")
   lineItems        LineItem[]
-
   @@map("products")
+  @@index([familyId], map: "products_family_id_idx")
+}
+
+model ProductFamily {
+  id           Int       @id @default(autoincrement())
+  name         String
+  brand        String?
+  category     String?
+  description  String?
+  defaultImage String?
+  attributes   Json?
+  products     Product[]
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @default(now()) @updatedAt @map("updated_at")
+
+  @@map("product_families")
+  @@index([name, brand], map: "product_families_name_brand_idx")
 }
 
 enum ProjectStatus {
-  DRAFT
-  QUOTED
-  ORDERED
+  DRAFT   @map("DRAFT")
+  QUOTED  @map("QUOTED")
+  ORDERED @map("ORDERED")
+
+  @@map("project_status")
 }
 
 model Project {
-  id         Int           @id @default(autoincrement())
-  orgId      Int
-  org        Org           @relation(fields: [orgId], references: [id])
-  name       String
-  clientMeta Json?
-  status     ProjectStatus @default(DRAFT)
-  createdBy  Int
-  createdAt  DateTime      @default(now())
-  updatedAt  DateTime      @updatedAt
-  rooms      Room[]
-  lineItems  LineItem[]
+  id          Int           @id @default(autoincrement())
+  orgId       Int           @map("org_id")
+  org         Org           @relation(fields: [orgId], references: [id])
+  name        String
+  clientMeta  Json?         @map("client_meta")
+  status      ProjectStatus @default(DRAFT)
+  createdBy   Int           @map("created_by")
+  createdAt   DateTime      @default(now()) @map("created_at")
+  updatedAt   DateTime      @updatedAt @map("updated_at")
+  rooms       Room[]
+  lineItems   LineItem[]
   bomVersions BOMVersion[]
-  orders     Order[]
+  orders      Order[]
 
   @@map("projects")
 }
 
 model Room {
   id        Int      @id @default(autoincrement())
-  projectId Int
+  projectId Int      @map("project_id")
   project   Project  @relation(fields: [projectId], references: [id])
   name      String
   notes     String?
@@ -104,55 +128,59 @@ model Room {
 
 model LineItem {
   id         Int      @id @default(autoincrement())
-  projectId  Int
+  projectId  Int      @map("project_id")
   project    Project  @relation(fields: [projectId], references: [id])
-  roomId     Int?
+  roomId     Int?     @map("room_id")
   room       Room?    @relation(fields: [roomId], references: [id])
-  productId  Int?
+  productId  Int?     @map("product_id")
   product    Product? @relation(fields: [productId], references: [id])
   qty        Int
-  unitPrice  Decimal?
+  unitPrice  Decimal? @map("unit_price")
   discounts  Json?
   notes      String?
   source     String?
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
 
   @@map("line_items")
 }
 
 model BOMVersion {
   id         Int      @id @default(autoincrement())
-  projectId  Int
+  projectId  Int      @map("project_id")
   project    Project  @relation(fields: [projectId], references: [id])
   snapshot   Json
   totals     Json?
-  createdBy  Int
-  createdAt  DateTime @default(now())
+  createdBy  Int      @map("created_by")
+  createdAt  DateTime @default(now()) @map("created_at")
   orders     Order[]
 
   @@map("bom_versions")
 }
 
 enum OrderStatus {
-  DRAFT
-  SENT
-  ACCEPTED
-  FULFILLED
-  SHIPPED
-  CANCELLED
+  DRAFT     @map("DRAFT")
+  SENT      @map("SENT")
+  ACCEPTED  @map("ACCEPTED")
+  FULFILLED @map("FULFILLED")
+  SHIPPED   @map("SHIPPED")
+  CANCELLED @map("CANCELLED")
+
+  @@map("order_status")
 }
 
 enum OrderType {
-  QUOTE
-  PO
+  QUOTE @map("QUOTE")
+  PO    @map("PO")
+
+  @@map("order_type")
 }
 
 model Order {
   id           Int         @id @default(autoincrement())
-  projectId    Int
+  projectId    Int         @map("project_id")
   project      Project     @relation(fields: [projectId], references: [id])
-  bomVersionId Int
+  bomVersionId Int         @map("bom_version_id")
   bomVersion   BOMVersion  @relation(fields: [bomVersionId], references: [id])
   type         OrderType   @default(QUOTE)
   status       OrderStatus @default(DRAFT)
@@ -160,8 +188,8 @@ model Order {
   tax          Json?
   total        Decimal?
   tracking     Json?
-  createdAt    DateTime    @default(now())
-  updatedAt    DateTime    @updatedAt
+  createdAt    DateTime    @default(now()) @map("created_at")
+  updatedAt    DateTime    @updatedAt @map("updated_at")
 
   @@map("orders")
 }

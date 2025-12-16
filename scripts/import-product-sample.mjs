@@ -8,6 +8,14 @@ import { parse } from "csv-parse/sync";
 const INPUT = "sample-data/product_sample.csv";
 const OUTPUT = "sample-data/product_sample.normalized.json";
 
+function sanitizeRowKeys(row) {
+  // Some CSV exports include a BOM on the first header; normalize it.
+  if (row["\uFEFFname"] && !row.name) {
+    row.name = row["\uFEFFname"];
+  }
+  return row;
+}
+
 function parseFacetString(raw) {
   if (!raw || !raw.trim()) return [];
   const trimmed = raw.trim();
@@ -35,16 +43,18 @@ const csv = readFileSync(INPUT, "utf8");
 const records = parse(csv, {
   columns: true,
   skip_empty_lines: true
-});
+}).map(sanitizeRowKeys);
 
 const normalized = records.map((r) => {
   const facets = parseFacetString(r.facets);
   const variantFacets = parseFacetString(r.variant_facets);
+  const brand = facets.find((f) => f.key === "brand")?.value || "";
   return {
     sku: r.sku,
     name: r.name,
     description: r.description,
     category: r.category,
+    brand,
     facets,
     variantFacets,
     unitCost: parseNumber(r.unit_cost),
@@ -79,6 +89,22 @@ const normalized = records.map((r) => {
       resellerPlus: parseNumber(r.reseller_plus)
     }
   };
+});
+
+// Infer families: products sharing the same name + brand become a family.
+const familyCounts = normalized.reduce((map, p) => {
+  const key = `${p.name}|${p.brand || ""}`;
+  map.set(key, (map.get(key) || 0) + 1);
+  return map;
+}, new Map());
+
+normalized.forEach((p) => {
+  const key = `${p.name}|${p.brand || ""}`;
+  if ((familyCounts.get(key) || 0) > 1) {
+    p.familyName = p.name;
+    p.familyBrand = p.brand || null;
+    p.familyCategory = p.category || null;
+  }
 });
 
 writeFileSync(OUTPUT, JSON.stringify(normalized, null, 2), "utf8");

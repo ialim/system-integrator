@@ -15,14 +15,21 @@ async function action(formData: FormData) {
   });
 
   if (!res.ok) {
-    throw new Error("Login failed");
+    let msg = "Login failed";
+    try {
+      const body = await res.json();
+      msg = body?.message || msg;
+    } catch {
+      // ignore parse error, use fallback
+    }
+    redirect(`/auth/login?error=${encodeURIComponent(msg)}`);
   }
   const data = await res.json();
   cookies().set("token", data.access_token, { httpOnly: true, path: "/" });
   redirect("/projects");
 }
 
-export default function LoginPage() {
+export default function LoginPage({ searchParams }: { searchParams?: { error?: string } }) {
   return (
     <Box as="main" display="grid" placeItems="center" minH="80vh">
       <Box as="form" action={action} w="100%" maxW="420px" bg="var(--panel)" border="1px solid var(--border)" borderRadius="14px" p="5" gap="3" display="grid">
@@ -32,6 +39,11 @@ export default function LoginPage() {
         <Text color="var(--muted)" m="0 0 3">
           Access your org projects and catalog.
         </Text>
+        {searchParams?.error && (
+          <Text color="#f59e0b" m="0">
+            {searchParams.error}
+          </Text>
+        )}
         <Stack spacing="3">
           <FormControl>
             <FormLabel color="var(--muted)">Email</FormLabel>

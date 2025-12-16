@@ -10,6 +10,7 @@
     "format": "pnpm -r format",
     "seed:products": "node scripts/import-product-sample.mjs",
     "seed:products:sql": "node scripts/generate-product-seed-sql.mjs",
+    "seed:products:db": "node scripts/seed-products-prisma.mjs",
     "prisma:generate": "prisma generate"
   },
   "dependencies": {

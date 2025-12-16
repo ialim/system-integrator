@@ -1,6 +1,6 @@
 import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { AddLineItemDto, CreateProjectDto } from './dto';
+import { AddLineItemDto, CreateProjectDto, CreateRoomDto, UpdateLineItemDto, UpdateRoomDto } from './dto';
 
 @Injectable()
 export class ProjectsService {
@@ -58,13 +58,16 @@ export class ProjectsService {
   }
 
   async addLineItem(orgId: number, userId: number, dto: AddLineItemDto) {
-    const project = await this.prisma.project.findUnique({ where: { id: dto.projectId } });
+    const projectId = dto.projectId;
+    if (!projectId) throw new NotFoundException('Project not found');
+
+    const project = await this.prisma.project.findUnique({ where: { id: projectId } });
     if (!project) throw new NotFoundException('Project not found');
     if (project.orgId !== orgId) throw new ForbiddenException();
 
     const lineItem = await this.prisma.lineItem.create({
       data: {
-        projectId: dto.projectId,
+        projectId,
         roomId: dto.roomId,
         productId: dto.productId,
         qty: dto.qty,
@@ -77,6 +80,52 @@ export class ProjectsService {
       }
     });
     return lineItem;
+  }
+
+  async updateLineItem(
+    orgId: number,
+    projectId: number,
+    lineItemId: number,
+    dto: UpdateLineItemDto
+  ) {
+    const lineItem = await this.prisma.lineItem.findUnique({
+      where: { id: lineItemId },
+      include: { project: true }
+    });
+    if (!lineItem) throw new NotFoundException('Line item not found');
+    if (lineItem.project.orgId !== orgId || lineItem.projectId !== projectId) throw new ForbiddenException();
+
+    if (dto.roomId !== undefined && dto.roomId !== null) {
+      const room = await this.prisma.room.findUnique({ where: { id: dto.roomId } });
+      if (!room || room.projectId !== projectId) {
+        throw new ForbiddenException('Room not found in this project');
+      }
+    }
+
+    return this.prisma.lineItem.update({
+      where: { id: lineItemId },
+      data: {
+        qty: dto.qty ?? undefined,
+        notes: dto.notes ?? undefined,
+        roomId: dto.roomId ?? undefined
+      },
+      include: {
+        product: true,
+        room: true
+      }
+    });
+  }
+
+  async removeLineItem(orgId: number, projectId: number, lineItemId: number) {
+    const lineItem = await this.prisma.lineItem.findUnique({
+      where: { id: lineItemId },
+      include: { project: true }
+    });
+    if (!lineItem) throw new NotFoundException('Line item not found');
+    if (lineItem.project.orgId !== orgId || lineItem.projectId !== projectId) throw new ForbiddenException();
+
+    await this.prisma.lineItem.delete({ where: { id: lineItemId } });
+    return { success: true };
   }
 
   async snapshotBom(orgId: number, projectId: number, userId: number, comment?: string) {
@@ -114,6 +163,33 @@ export class ProjectsService {
         totals,
         createdBy: userId
       }
+    });
+  }
+
+  async createRoom(orgId: number, projectId: number, dto: CreateRoomDto) {
+    const project = await this.prisma.project.findUnique({ where: { id: projectId } });
+    if (!project) throw new NotFoundException('Project not found');
+    if (project.orgId !== orgId) throw new ForbiddenException();
+
+    return this.prisma.room.create({
+      data: {
+        name: dto.name,
+        projectId
+      }
+    });
+  }
+
+  async renameRoom(orgId: number, projectId: number, roomId: number, dto: UpdateRoomDto) {
+    const room = await this.prisma.room.findUnique({
+      where: { id: roomId },
+      include: { project: true }
+    });
+    if (!room) throw new NotFoundException('Room not found');
+    if (room.projectId !== projectId || room.project.orgId !== orgId) throw new ForbiddenException();
+
+    return this.prisma.room.update({
+      where: { id: roomId },
+      data: { name: dto.name }
     });
   }
 }

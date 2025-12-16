@@ -1,24 +1,35 @@
 :root {
-  --bg: #0b1021;
-  --panel: #111831;
-  --card: #161f38;
-  --border: #1f2940;
-  --text: #f5f7fb;
-  --muted: #9fb3d8;
+  --bg: #0b1226;
+  --panel: #0f1b36;
+  --card: #121f3f;
+  --panel-alt: #0c1630;
+  --border: #1f2d4a;
+  --border-strong: #2c3c5e;
+  --text: #eaf1ff;
+  --muted: #8fa3c7;
   --accent: #7bb5ff;
-  --primary: #1f6feb;
+  --primary: #2d6bff;
+  --warning: #f97316;
+  --success: #2dd4bf;
+  --radius: 14px;
 }
 
 * {
   box-sizing: border-box;
 }
 
-html, body {
+html,
+body {
   margin: 0;
   padding: 0;
-  font-family: Arial, sans-serif;
+  font-family: var(--font-body), "Space Grotesk", system-ui, -apple-system, sans-serif;
   background: var(--bg);
   color: var(--text);
+}
+
+body {
+  background: radial-gradient(120% 120% at 10% 10%, rgba(45, 107, 255, 0.12), transparent 45%),
+    radial-gradient(120% 120% at 80% 0%, rgba(124, 58, 237, 0.14), transparent 50%), var(--bg);
 }
 
 a {
@@ -26,6 +37,58 @@ a {
   text-decoration: none;
 }
 
-input, button {
+input,
+button {
   font-family: inherit;
+}
+
+.app-shell {
+  display: flex;
+  min-height: 100vh;
+  background: linear-gradient(180deg, rgba(15, 27, 54, 0.95), rgba(12, 20, 40, 0.98)), var(--bg);
+}
+
+.app-main {
+  flex: 1;
+  padding: 18px 26px 32px;
+  max-width: 1480px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.app-content {
+  margin-top: 18px;
+}
+
+.glow-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.glow-card::before {
+  content: "";
+  position: absolute;
+  inset: -80px;
+  background: radial-gradient(120px at 20% 20%, rgba(45, 107, 255, 0.2), transparent),
+    radial-gradient(120px at 80% 80%, rgba(124, 58, 237, 0.16), transparent);
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+.glow-card > * {
+  position: relative;
+  z-index: 1;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
 }

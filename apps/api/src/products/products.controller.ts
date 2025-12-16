@@ -19,6 +19,12 @@ export class ProductsController {
     return { items, limit, offset, total };
   }
 
+  @Get('/families')
+  async listFamilies(@Query('q') q?: string, @Query('category') category?: string, @Query('brand') brand?: string) {
+    const families = await this.productsService.listFamilies({ q, category, brand });
+    return { items: families };
+  }
+
   @Get(':sku')
   async bySku(@Param('sku') sku: string) {
     const product = await this.productsService.getBySku(sku);

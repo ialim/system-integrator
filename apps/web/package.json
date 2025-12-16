@@ -5,11 +5,14 @@
   "type": "module",
   "scripts": {
     "dev": "next dev",
+    "predev": "pnpm run clean:next",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "clean:next": "rimraf .next .turbo"
   },
   "dependencies": {
+    "@chakra-ui/icons": "^2.2.4",
     "@chakra-ui/react": "^2.8.2",
     "@emotion/react": "^11.13.3",
     "@emotion/styled": "^11.13.0",
@@ -23,6 +26,7 @@
     "@types/react": "^18.3.11",
     "eslint": "^8.57.1",
     "eslint-config-next": "14.2.13",
+    "rimraf": "^6.0.1",
     "typescript": "^5.6.3"
   }
 }

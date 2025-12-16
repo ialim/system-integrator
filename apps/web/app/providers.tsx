@@ -7,15 +7,20 @@ const theme = extendTheme({
   styles: {
     global: {
       body: {
-        bg: "#0b1021",
-        color: "#f5f7fb"
+        bg: "var(--bg)",
+        color: "var(--text)",
+        fontFamily: "var(--font-body)"
       }
     }
   },
   colors: {
     brand: {
-      500: "#1f6feb"
+      500: "#2d6bff"
     }
+  },
+  fonts: {
+    body: "var(--font-body)",
+    heading: "var(--font-body)"
   }
 });
 

@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
-import { Box, Button, Grid, HStack, Input, Stack, Text } from "@chakra-ui/react";
+import { Box, Button, Grid, HStack, Input, Stack, Text, Link } from "@chakra-ui/react";
 import { createProject, fetchProjects } from "../../lib/projects";
 
 async function getToken() {
@@ -45,7 +45,16 @@ export default async function ProjectsPage({ searchParams }: { searchParams?: { 
           {error && <Text color="#f59e0b">{error}</Text>}
           <Grid templateColumns="repeat(auto-fit, minmax(260px, 1fr))" gap="3" mt="3">
             {data?.items?.map((p) => (
-              <Box key={p.id} bg="var(--card)" border="1px solid var(--border)" borderRadius="12px" p="4">
+              <Box
+                key={p.id}
+                as={Link}
+                href={`/projects/${p.id}`}
+                bg="var(--card)"
+                border="1px solid var(--border)"
+                borderRadius="12px"
+                p="4"
+                _hover={{ borderColor: "var(--accent)" }}
+              >
                 <Stack spacing="1">
                   <Text fontWeight="700">{p.name}</Text>
                   <Text color="var(--muted)" fontSize="sm">

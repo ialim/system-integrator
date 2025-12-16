@@ -13,12 +13,27 @@ const products = JSON.parse(readFileSync(INPUT, "utf8"));
 const header = `-- Seed products
 -- Generated from ${INPUT}
 
+CREATE TABLE IF NOT EXISTS product_families (
+  id SERIAL PRIMARY KEY,
+  name TEXT NOT NULL,
+  brand TEXT,
+  category TEXT,
+  description TEXT,
+  "defaultImage" TEXT,
+  attributes JSONB,
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS product_families_name_brand_key ON product_families(name, brand);
+
 CREATE TABLE IF NOT EXISTS products (
   id SERIAL PRIMARY KEY,
   sku TEXT UNIQUE NOT NULL,
   name TEXT NOT NULL,
   description TEXT,
   category TEXT,
+  family_id INTEGER,
   unit_cost NUMERIC,
   currency TEXT,
   msrp NUMERIC,
@@ -40,11 +55,51 @@ CREATE TABLE IF NOT EXISTS products (
   updated_at TIMESTAMP DEFAULT NOW()
 );
 
+ALTER TABLE products
+  ADD COLUMN IF NOT EXISTS family_id INTEGER,
+  ADD CONSTRAINT products_family_id_fkey FOREIGN KEY (family_id) REFERENCES product_families(id) ON DELETE SET NULL ON UPDATE CASCADE;
+
+CREATE INDEX IF NOT EXISTS products_family_id_idx ON products(family_id);
+
 `;
 
 function sqlEscape(str) {
   return String(str).replace(/'/g, "''");
 }
+
+const familyMap = new Map();
+
+products.forEach((p) => {
+  if (p.familyName) {
+    const key = `${p.familyName}|${p.familyBrand || ""}`;
+    if (!familyMap.has(key)) {
+      familyMap.set(key, {
+        name: p.familyName,
+        brand: p.familyBrand || null,
+        category: p.familyCategory || p.category || null,
+        description: p.description || null,
+        defaultImage: null,
+        attributes: p.variantFacets || null
+      });
+    }
+  }
+});
+
+const familyRows = Array.from(familyMap.values())
+  .map((f) => {
+    const cols = {
+      name: `'${sqlEscape(f.name)}'`,
+      brand: f.brand ? `'${sqlEscape(f.brand)}'` : "NULL",
+      category: f.category ? `'${sqlEscape(f.category)}'` : "NULL",
+      description: f.description ? `'${sqlEscape(f.description)}'` : "NULL",
+      defaultImage: f.defaultImage ? `'${sqlEscape(f.defaultImage)}'` : "NULL",
+      attributes: f.attributes ? `'${sqlEscape(JSON.stringify(f.attributes))}'::jsonb` : "NULL"
+    };
+    const columns = Object.keys(cols).join(", ");
+    const values = Object.values(cols).join(", ");
+    return `INSERT INTO product_families (${columns}) VALUES (${values}) ON CONFLICT (name, brand) DO UPDATE SET category = EXCLUDED.category, description = EXCLUDED.description, "defaultImage" = EXCLUDED."defaultImage", attributes = EXCLUDED.attributes;`;
+  })
+  .join("\n");
 
 const rows = products
   .map((p) => {
@@ -53,6 +108,9 @@ const rows = products
       name: `'${sqlEscape(p.name)}'`,
       description: p.description ? `'${sqlEscape(p.description)}'` : "NULL",
       category: p.category ? `'${sqlEscape(p.category)}'` : "NULL",
+      family_id: p.familyName
+        ? `(SELECT id FROM product_families WHERE name = '${sqlEscape(p.familyName)}' AND COALESCE(brand, '') = '${sqlEscape(p.familyBrand || "")}')`
+        : "NULL",
       unit_cost: p.unitCost ?? "NULL",
       currency: p.currency ? `'${sqlEscape(p.currency)}'` : "NULL",
       msrp: p.msrp ?? "NULL",
@@ -69,14 +127,20 @@ const rows = products
       compat_blocks: p.compatBlocks ? `'${sqlEscape(JSON.stringify(p.compatBlocks))}'::jsonb` : "NULL",
       bundle_components: p.bundleComponents ? `'${sqlEscape(p.bundleComponents)}'` : "NULL",
       supplier: p.supplier ? `'${sqlEscape(JSON.stringify(p.supplier))}'::jsonb` : "NULL",
-      pricing: p.pricing ? `'${sqlEscape(JSON.stringify(p.pricing))}'::jsonb` : "NULL"
+  pricing: p.pricing ? `'${sqlEscape(JSON.stringify(p.pricing))}'::jsonb` : "NULL"
     };
 
     const columns = Object.keys(cols).join(", ");
     const values = Object.values(cols).join(", ");
-    return `INSERT INTO products (${columns}) VALUES (${values}) ON CONFLICT (sku) DO UPDATE SET updated_at = NOW();`;
+    const updates = Object.keys(cols)
+      .map((c) => `${c} = EXCLUDED.${c}`)
+      .concat("updated_at = NOW()")
+      .join(", ");
+    return `INSERT INTO products (${columns}) VALUES (${values}) ON CONFLICT (sku) DO UPDATE SET ${updates};`;
   })
   .join("\n");
 
-writeFileSync(OUTPUT, header + rows + "\n", "utf8");
-console.log(`Wrote SQL seed for ${products.length} products to ${OUTPUT}`);
+const sql = [header, familyRows, rows].filter(Boolean).join("\n");
+
+writeFileSync(OUTPUT, sql + "\n", "utf8");
+console.log(`Wrote SQL seed for ${products.length} products and ${familyMap.size} families to ${OUTPUT}`);
