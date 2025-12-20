@@ -21,7 +21,6 @@ export default async function Home({
   try {
     const res = await fetchProductFamilies({
       q: searchParams?.q,
-      category: categoryFilter || undefined,
       brand: searchParams?.brand
     });
     families = res.items;
@@ -107,7 +106,7 @@ export default async function Home({
               </Box>
             </HStack>
             {error && <Text color="#f59e0b">{error}</Text>}
-            <Grid templateColumns="repeat(auto-fit, minmax(260px, 1fr))" gap="4">
+            <Grid templateColumns="repeat(auto-fill, minmax(260px, 320px))" gap="4" justifyContent="flex-start">
               {familiesToRender.map((fam) => (
                 <ProductFamilyCard key={`${fam.family.name}-${fam.family.brand || ""}`} family={fam.family} variants={fam.variants} />
               ))}

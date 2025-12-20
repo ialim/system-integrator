@@ -64,7 +64,7 @@ export class ProductsService {
     }
     if (params.brand) {
       where.facets = {
-        path: '$[*]',
+        path: ['*'],
         array_contains: [{ key: 'brand', value: params.brand }]
       } as any;
     }
@@ -100,7 +100,7 @@ export class ProductsService {
     }
     if (params.brand) {
       where.facets = {
-        path: '$[*]',
+        path: ['*'],
         array_contains: [{ key: 'brand', value: params.brand }]
       } as any;
     }

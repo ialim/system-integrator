@@ -12,7 +12,31 @@ async function getToken() {
 export default async function ProjectsPage({ searchParams }: { searchParams?: { limit?: string; offset?: string } }) {
   const token = await getToken();
   if (!token) {
-    redirect("/auth/login");
+    return (
+      <main style={{ minHeight: "80vh" }}>
+        <Stack spacing="4">
+          <Box bg="var(--panel)" border="1px solid var(--border)" borderRadius="16px" p="5">
+            <Stack spacing="3">
+              <Text fontSize="lg" fontWeight="700">
+                Projects
+              </Text>
+              <Text color="var(--muted)">Sign in to create and manage project BOMs.</Text>
+              <HStack spacing="2">
+                <Button as={Link} href="/auth/login" bg="var(--primary)" color="#fff">
+                  Sign in
+                </Button>
+                <Button as={Link} href="/auth/signup" variant="outline" borderColor="var(--border)" color="var(--text)">
+                  Sign up
+                </Button>
+              </HStack>
+              <Text color="var(--muted)" fontSize="sm">
+                You can browse the catalog without an account. Log in to save rooms, line items, and proposals.
+              </Text>
+            </Stack>
+          </Box>
+        </Stack>
+      </main>
+    );
   }
 
   const limit = searchParams?.limit ? Number(searchParams.limit) : 10;
@@ -20,10 +44,39 @@ export default async function ProjectsPage({ searchParams }: { searchParams?: { 
 
   let data: { items: any[]; total: number; limit: number; offset: number } | null = null;
   let error: string | null = null;
+  let unauthorized = false;
   try {
     data = await fetchProjects(token!, { limit, offset });
   } catch (err) {
     error = err instanceof Error ? err.message : "Failed to load projects";
+    if (error.includes("(401)")) {
+      unauthorized = true;
+    }
+  }
+
+  if (unauthorized) {
+    return (
+      <main style={{ minHeight: "80vh" }}>
+        <Stack spacing="4">
+          <Box bg="var(--panel)" border="1px solid var(--border)" borderRadius="16px" p="5">
+            <Stack spacing="3">
+              <Text fontSize="lg" fontWeight="700">
+                Projects
+              </Text>
+              <Text color="var(--muted)">Session expired. Sign in to view and create projects.</Text>
+              <HStack spacing="2">
+                <Button as={Link} href="/auth/login" bg="var(--primary)" color="#fff">
+                  Sign in
+                </Button>
+                <Button as={Link} href="/auth/signup" variant="outline" borderColor="var(--border)" color="var(--text)">
+                  Sign up
+                </Button>
+              </HStack>
+            </Stack>
+          </Box>
+        </Stack>
+      </main>
+    );
   }
 
   return (
