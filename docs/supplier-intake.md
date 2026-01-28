@@ -1,9 +1,19 @@
 # Supplier Intake
 
 ## Preferred ingest format
-- CSV/XLSX with columns: `sku,name,brand,category,description,unit_cost,currency,msrp,lead_time_days,stock_band,volume_breaks,accessories,compat_requires,compat_blocks,bundle_components`.
+- CSV/XLSX with columns: `sku,name,brand,category,description,unit_cost,currency,msrp,lead_time_days,stock_band,volume_breaks,accessories,compat_requires,compat_blocks,bundle_components,image_url,datasheet_url,media_urls`.
 - Volume breaks: JSON array of `{min_qty, discount}` (discount as decimal, e.g., 0.05 for 5%).
 - Lead time: days to ship; stock band: in-stock/low/limited/backorder.
+
+## Import validation and dedupe
+- Rows without `sku` or `name` are skipped.
+- Duplicate `sku` rows are deduped; the row with more filled fields is kept.
+- `media_urls` can be a `|`- or `;`-separated list of URLs.
+
+## Inventory sync (recurring)
+- CSV columns: `sku,supplier,supplier_sku,available_qty,lead_time_days,stock_band,updated_at`.
+- Lead time + stock band overwrite the product fields; inventory details are stored in `product.supplier.inventory`.
+- Run `pnpm supplier:sync -- --input sample-data/supplier_inventory.csv --source "Supplier Name"`.
 
 ## PDF/Manual catalogs
 - If suppliers only provide PDFs, extract to CSV and normalize to the template. Key attributes needed: SKU/model, name, protocol (Wi-Fi/Zigbee/Matter), power (e.g., 1/2/3 gang), material, price breaks, compatible panels/gateways, availability.

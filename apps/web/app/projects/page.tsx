@@ -119,7 +119,7 @@ export default async function ProjectsPage({ searchParams }: { searchParams?: { 
                 </Stack>
               </Box>
             ))}
-            {!data && !error && <Text color="var(--muted)">Loading projects…</Text>}
+            {!data && !error && <Text color="var(--muted)">Loading projects...</Text>}
             {data && data.items.length === 0 && <Text color="var(--muted)">No projects yet.</Text>}
           </Grid>
           {data && <Pagination total={data.total} limit={limit} offset={offset} />}

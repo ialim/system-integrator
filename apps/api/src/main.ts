@@ -1,16 +1,16 @@
-import { config as loadEnv } from 'dotenv';
-import { resolve } from 'path';
+import './env';
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { AppModule } from './app.module';
-
-// Ensure we load the root .env even when running from apps/api
-loadEnv({ path: resolve(process.cwd(), '..', '..', '.env') });
+import { env } from './env';
+import { requestLogger } from './shared/request-logger';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
-    logger: ['log', 'error', 'warn']
+    logger: ['log', 'error', 'warn'],
+    rawBody: true
   });
+  app.use(requestLogger);
   app.setGlobalPrefix('api');
   app.useGlobalPipes(
     new ValidationPipe({
@@ -19,7 +19,7 @@ async function bootstrap() {
       transform: true
     })
   );
-  await app.listen(process.env.PORT || 3001);
+  await app.listen(env.port);
 }
 
 bootstrap();

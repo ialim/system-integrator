@@ -31,10 +31,32 @@ services:
       DB_PASSWORD: app
       DB_NAME: app
       DATABASE_URL: postgresql://app:app@db:5432/app
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
     ports:
       - "3001:3001"
     depends_on:
       - db
+      - redis
+
+  worker:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    command: ["node", "apps/api/dist/worker.js"]
+    environment:
+      PORT: 3001
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_USER: app
+      DB_PASSWORD: app
+      DB_NAME: app
+      DATABASE_URL: postgresql://app:app@db:5432/app
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+    depends_on:
+      - db
+      - redis
 
   db:
     image: postgres:16-alpine

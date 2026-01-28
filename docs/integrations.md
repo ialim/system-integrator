@@ -6,6 +6,8 @@
 - Interswitch (optional): Nigeria cards/Quickteller/Verve.
 - Stripe (optional fallback): only where available; keep adapter-based gateway layer so regions can switch.
 - Plan: gateway abstraction with feature flags per org/region; store webhook secrets/keys per org.
+- Implemented Paystack initialization + verification; web callback at `/payments/callback`.
+- Paystack webhook: `POST /payments/paystack/webhook` with `x-paystack-signature`, processed by background jobs.
 
 ## Tax
 - Approach: built-in VAT tables per country (config-driven) with periodic updates; per-org tax-exempt flag; simple invoice numbering.

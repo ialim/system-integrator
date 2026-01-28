@@ -9,6 +9,9 @@ export type ProductRecord = {
   category?: string | null;
   familyId?: number | null;
   family?: ProductFamilyRecord | null;
+  imageUrl?: string | null;
+  datasheetUrl?: string | null;
+  media?: any;
   unitCost?: any;
   currency?: string | null;
   msrp?: any;
@@ -49,30 +52,58 @@ export class ProductsService {
     q?: string;
     category?: string;
     brand?: string;
+    sort?: string;
+    dir?: string;
+    facetFilters?: Array<{ key: string; value: string }>;
   }): Promise<{ items: ProductRecord[]; total: number }> {
     const limit = Math.min(params.limit ?? 20, 100);
     const offset = params.offset ?? 0;
-    const where: Prisma.ProductWhereInput = {};
+    const filters: Prisma.ProductWhereInput[] = [];
     if (params.q) {
-      where.OR = [
-        { name: { contains: params.q, mode: 'insensitive' } },
-        { description: { contains: params.q, mode: 'insensitive' } }
-      ];
+      filters.push({
+        OR: [
+          { name: { contains: params.q, mode: 'insensitive' } },
+          { sku: { contains: params.q, mode: 'insensitive' } },
+          { description: { contains: params.q, mode: 'insensitive' } }
+        ]
+      });
     }
     if (params.category) {
-      where.category = params.category;
+      filters.push({ category: params.category });
     }
     if (params.brand) {
-      where.facets = {
-        path: ['*'],
-        array_contains: [{ key: 'brand', value: params.brand }]
-      } as any;
+      filters.push({
+        facets: {
+          array_contains: [{ key: 'brand', value: params.brand }]
+        } as any
+      });
     }
+    if (params.facetFilters?.length) {
+      params.facetFilters.forEach((facet) => {
+        filters.push({
+          facets: {
+            array_contains: [{ key: facet.key, value: facet.value }]
+          } as any
+        });
+      });
+    }
+
+    const where: Prisma.ProductWhereInput = filters.length ? { AND: filters } : {};
+    const direction: Prisma.SortOrder = params.dir?.toLowerCase() === 'desc' ? 'desc' : 'asc';
+    const sortKey = params.sort?.toLowerCase();
+    const orderBy: Prisma.ProductOrderByWithRelationInput[] =
+      sortKey === 'price'
+        ? [{ msrp: direction }, { unitCost: direction }, { name: 'asc' }]
+        : sortKey === 'leadtime'
+        ? [{ leadTimeDays: direction }, { name: 'asc' }]
+        : sortKey === 'created'
+        ? [{ createdAt: direction }]
+        : [{ name: direction }];
 
     const [items, total] = await this.prisma.$transaction([
       this.prisma.product.findMany({
         where,
-        orderBy: { name: 'asc' },
+        orderBy,
         skip: offset,
         take: limit,
         include: { family: true }
@@ -87,24 +118,43 @@ export class ProductsService {
     return (product as any) || null;
   }
 
-  async listFamilies(params: { q?: string; category?: string; brand?: string }) {
-    const where: Prisma.ProductWhereInput = {};
+  async listFamilies(params: {
+    q?: string;
+    category?: string;
+    brand?: string;
+    facetFilters?: Array<{ key: string; value: string }>;
+  }) {
+    const filters: Prisma.ProductWhereInput[] = [];
     if (params.q) {
-      where.OR = [
-        { name: { contains: params.q, mode: 'insensitive' } },
-        { description: { contains: params.q, mode: 'insensitive' } }
-      ];
+      filters.push({
+        OR: [
+          { name: { contains: params.q, mode: 'insensitive' } },
+          { sku: { contains: params.q, mode: 'insensitive' } },
+          { description: { contains: params.q, mode: 'insensitive' } }
+        ]
+      });
     }
     if (params.category) {
-      where.category = params.category;
+      filters.push({ category: params.category });
     }
     if (params.brand) {
-      where.facets = {
-        path: ['*'],
-        array_contains: [{ key: 'brand', value: params.brand }]
-      } as any;
+      filters.push({
+        facets: {
+          array_contains: [{ key: 'brand', value: params.brand }]
+        } as any
+      });
+    }
+    if (params.facetFilters?.length) {
+      params.facetFilters.forEach((facet) => {
+        filters.push({
+          facets: {
+            array_contains: [{ key: facet.key, value: facet.value }]
+          } as any
+        });
+      });
     }
 
+    const where: Prisma.ProductWhereInput = filters.length ? { AND: filters } : {};
     const products = await this.prisma.product.findMany({
       where,
       orderBy: [{ familyId: 'asc' }, { name: 'asc' }],

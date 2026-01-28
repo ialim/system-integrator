@@ -16,6 +16,15 @@ function sanitizeRowKeys(row) {
   return row;
 }
 
+function getField(row, keys) {
+  for (const key of keys) {
+    if (row[key] !== undefined && row[key] !== null && String(row[key]).trim() !== "") {
+      return row[key];
+    }
+  }
+  return "";
+}
+
 function parseFacetString(raw) {
   if (!raw || !raw.trim()) return [];
   const trimmed = raw.trim();
@@ -39,24 +48,90 @@ function parseNumber(raw) {
   return Number.isFinite(n) ? n : null;
 }
 
+function parseMediaList(raw) {
+  if (!raw || !String(raw).trim()) return [];
+  const normalized = String(raw)
+    .split(/[|;]/)
+    .map((entry) => entry.trim())
+    .filter(Boolean);
+  return normalized.map((url) => ({ type: "image", url }));
+}
+
+function rowCompleteness(row) {
+  const fields = [
+    "sku",
+    "name",
+    "description",
+    "category",
+    "facets",
+    "variant_facets",
+    "unit_cost",
+    "currency",
+    "msrp",
+    "lead_time_days",
+    "stock_band",
+    "image_url",
+    "datasheet_url",
+    "media_urls"
+  ];
+  return fields.reduce((count, key) => {
+    const value = row[key];
+    return value === undefined || value === null || String(value).trim() === "" ? count : count + 1;
+  }, 0);
+}
+
 const csv = readFileSync(INPUT, "utf8");
 const records = parse(csv, {
   columns: true,
   skip_empty_lines: true
 }).map(sanitizeRowKeys);
 
-const normalized = records.map((r) => {
+const deduped = new Map();
+const warnings = [];
+for (const r of records) {
+  const sku = String(getField(r, ["sku", "SKU"])).trim();
+  const name = String(getField(r, ["name", "Name"])).trim();
+  if (!sku || !name) {
+    warnings.push(`Skipping row with missing sku/name: ${JSON.stringify({ sku, name })}`);
+    continue;
+  }
+  const existing = deduped.get(sku);
+  if (!existing) {
+    deduped.set(sku, r);
+  } else {
+    const existingScore = rowCompleteness(existing);
+    const nextScore = rowCompleteness(r);
+    if (nextScore > existingScore) {
+      warnings.push(`Duplicate sku ${sku} found; using row with more data (${nextScore} > ${existingScore}).`);
+      deduped.set(sku, r);
+    } else {
+      warnings.push(`Duplicate sku ${sku} found; keeping earlier row (${existingScore} >= ${nextScore}).`);
+    }
+  }
+}
+
+warnings.forEach((msg) => console.warn(msg));
+
+const normalized = Array.from(deduped.values()).map((r) => {
+  const imageUrl = getField(r, ["image_url", "imageUrl", "image", "image_url_primary"]);
+  const datasheetUrl = getField(r, ["datasheet_url", "datasheetUrl", "datasheet"]);
+  const mediaRaw = getField(r, ["media_urls", "media", "mediaUrls"]);
+  const sku = String(getField(r, ["sku", "SKU"])).trim();
+  const name = String(getField(r, ["name", "Name"])).trim();
   const facets = parseFacetString(r.facets);
   const variantFacets = parseFacetString(r.variant_facets);
   const brand = facets.find((f) => f.key === "brand")?.value || "";
   return {
-    sku: r.sku,
-    name: r.name,
+    sku,
+    name,
     description: r.description,
     category: r.category,
     brand,
     facets,
     variantFacets,
+    imageUrl: imageUrl || null,
+    datasheetUrl: datasheetUrl || null,
+    media: mediaRaw ? parseMediaList(mediaRaw) : null,
     unitCost: parseNumber(r.unit_cost),
     currency: r.currency || "NGN",
     msrp: parseNumber(r.msrp),

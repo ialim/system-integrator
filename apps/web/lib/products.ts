@@ -8,12 +8,16 @@ export type Product = {
   category?: string;
   familyId?: number | null;
   family?: ProductFamily | null;
+  imageUrl?: string | null;
+  datasheetUrl?: string | null;
+  media?: Array<{ type?: string; url: string; label?: string }> | string[] | null;
   currency?: string;
   unitCost?: number;
   msrp?: number;
   leadTimeDays?: number | null;
   stockBand?: string | null;
   facets?: { key: string; value: string }[];
+  variantFacets?: { key: string; value: string }[];
   supplier?: any;
   pricing?: any;
 };
@@ -32,6 +36,9 @@ export async function fetchProducts(params?: {
   q?: string;
   category?: string;
   brand?: string;
+  sort?: string;
+  dir?: string;
+  facets?: string[];
   limit?: number;
   offset?: number;
 }) {
@@ -39,6 +46,11 @@ export async function fetchProducts(params?: {
   if (params?.q) search.set('q', params.q);
   if (params?.category) search.set('category', params.category);
   if (params?.brand) search.set('brand', params.brand);
+  if (params?.sort) search.set('sort', params.sort);
+  if (params?.dir) search.set('dir', params.dir);
+  if (params?.facets?.length) {
+    params.facets.forEach((facet) => search.append('facet', facet));
+  }
   if (params?.limit) search.set('limit', String(params.limit));
   if (params?.offset) search.set('offset', String(params.offset));
 
@@ -61,11 +73,19 @@ export async function fetchProduct(sku: string) {
   return (await res.json()) as Product;
 }
 
-export async function fetchProductFamilies(params?: { q?: string; category?: string; brand?: string }) {
+export async function fetchProductFamilies(params?: {
+  q?: string;
+  category?: string;
+  brand?: string;
+  facets?: string[];
+}) {
   const search = new URLSearchParams();
   if (params?.q) search.set('q', params.q);
   if (params?.category) search.set('category', params.category);
   if (params?.brand) search.set('brand', params.brand);
+  if (params?.facets?.length) {
+    params.facets.forEach((facet) => search.append('facet', facet));
+  }
 
   const url = `${API_URL}/products/families${search.toString() ? `?${search.toString()}` : ''}`;
   const res = await fetch(url, { cache: 'no-store' });

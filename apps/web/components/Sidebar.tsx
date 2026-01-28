@@ -32,15 +32,18 @@ const mainNav: NavItem[] = [
   { label: "Configurator", href: "#", icon: StarIcon, disabled: true },
   { label: "Product Catalog", href: "/", icon: ExternalLinkIcon, match: "/products" },
   { label: "Project Builder", href: "/projects", icon: DragHandleIcon, match: "/projects" },
-  { label: "Orders", href: "#", icon: CheckCircleIcon, disabled: true },
-  { label: "Clients", href: "#", icon: AddIcon, disabled: true },
-  { label: "Settings", href: "#", icon: SettingsIcon, disabled: true }
+  { label: "Orders", href: "/orders", icon: CheckCircleIcon, match: "/orders" },
+  { label: "Clients", href: "/clients", icon: AddIcon, match: "/clients" },
+  { label: "Organization", href: "/settings/organization", icon: SettingsIcon, match: "/settings/organization" },
+  { label: "Team", href: "/settings/team", icon: SettingsIcon, match: "/settings/team" },
+  { label: "Security", href: "/settings/security", icon: SettingsIcon, match: "/settings/security" }
 ];
 
 const adminNav: NavItem[] = [
   { label: "Catalog", href: "#", icon: StarIcon, disabled: true },
-  { label: "Orders", href: "#", icon: CheckCircleIcon, disabled: true },
-  { label: "Inventory", href: "#", icon: AddIcon, disabled: true }
+  { label: "Orders", href: "/orders", icon: CheckCircleIcon, match: "/orders" },
+  { label: "Inventory", href: "#", icon: AddIcon, disabled: true },
+  { label: "Clients", href: "/clients", icon: AddIcon, match: "/clients" }
 ];
 
 export function Sidebar({ user }: SidebarProps) {
@@ -104,7 +107,7 @@ export function Sidebar({ user }: SidebarProps) {
           </HStack>
           <Button
             as={NextLink}
-            href="/auth/login"
+            href="/auth/logout"
             size="sm"
             variant="ghost"
             color="var(--text)"

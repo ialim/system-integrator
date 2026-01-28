@@ -28,10 +28,17 @@ async function action(formData: FormData) {
   }
   const data = await res.json();
   cookies().set("token", data.access_token, { httpOnly: true, path: "/" });
+  if (data.refresh_token) {
+    cookies().set("refresh_token", data.refresh_token, { httpOnly: true, path: "/" });
+  }
+  if (data.verification_token) {
+    redirect(`/auth/verify?token=${encodeURIComponent(data.verification_token)}`);
+  }
   redirect("/projects");
 }
 
 export default function SignupPage({ searchParams }: { searchParams?: { error?: string } }) {
+  const googleUrl = `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api"}/auth/google`;
   return (
     <Box as="main" display="grid" placeItems="center" minH="80vh">
       <Box as="form" action={action} w="100%" maxW="480px" bg="var(--panel)" border="1px solid var(--border)" borderRadius="14px" p="5" display="grid" gap="3">
@@ -66,6 +73,9 @@ export default function SignupPage({ searchParams }: { searchParams?: { error?: 
         </Stack>
         <Button type="submit" bg="var(--primary)" color="#fff" fontWeight="700">
           Sign up
+        </Button>
+        <Button as={Link} href={googleUrl} variant="outline" borderColor="var(--border)" color="var(--text)" fontWeight="700">
+          Continue with Google
         </Button>
         <Text color="var(--muted)" m="0">
           Have an account?{" "}

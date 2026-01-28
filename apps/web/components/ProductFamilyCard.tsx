@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Badge, Box, Button, HStack, Stack, Text } from "@chakra-ui/react";
+import { Badge, Box, Button, HStack, Stack, Text, Image } from "@chakra-ui/react";
 import Link from "next/link";
 import type { Product, ProductFamily } from "../lib/products";
 
@@ -27,14 +27,32 @@ export function ProductFamilyCard({ family, variants }: Props) {
   const currency = selected?.currency || "NGN";
   const brand = selected?.facets?.find((f) => f.key === "brand")?.value || family.brand;
   const category = family.category || selected?.category;
+  const placeholderImage = "/placeholder-product.svg";
+  const mediaList = Array.isArray(selected?.media) ? selected?.media : [];
+  const mediaUrl =
+    selected?.imageUrl ||
+    (typeof mediaList[0] === "string" ? mediaList[0] : mediaList[0]?.url) ||
+    family.defaultImage ||
+    placeholderImage;
   const variantOptions = sortedVariants.map((v) => ({
     sku: v.sku,
     label: v.variantFacets?.map((vf) => vf.value).join(" / ") || v.sku
   }));
 
   return (
-    <Box bg="var(--card)" border="1px solid var(--border)" borderRadius="14px" p="4" display="flex" flexDirection="column" minH="320px">
+    <Box bg="var(--card)" border="1px solid var(--border)" borderRadius="14px" p="4" display="flex" flexDirection="column" minH="340px">
       <Stack spacing="2" flex="1">
+        <Box
+          borderRadius="12px"
+          overflow="hidden"
+          border="1px solid var(--border)"
+          bg="rgba(255,255,255,0.03)"
+          h="130px"
+          display="grid"
+          placeItems="center"
+        >
+          <Image src={mediaUrl} alt={family.name} objectFit="cover" w="100%" h="100%" />
+        </Box>
         <HStack justify="space-between" align="center">
           <Badge colorScheme="purple" variant="subtle">
             {category || "Uncategorized"}

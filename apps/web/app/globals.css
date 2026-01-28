@@ -92,3 +92,35 @@ button {
   background: rgba(255, 255, 255, 0.08);
   border-radius: 8px;
 }
+
+@media print {
+  body {
+    background: #ffffff !important;
+    color: #111111 !important;
+    print-color-adjust: exact;
+  }
+
+  .app-shell {
+    background: #ffffff !important;
+  }
+
+  aside,
+  header,
+  .proposal-actions,
+  .proposal-acceptance {
+    display: none !important;
+  }
+
+  .app-main {
+    padding: 0 !important;
+    max-width: none !important;
+  }
+
+  .app-content {
+    margin-top: 0 !important;
+  }
+
+  a {
+    color: inherit !important;
+  }
+}

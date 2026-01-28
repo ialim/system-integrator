@@ -22,8 +22,9 @@ Platform for system integrators to design smart-home projects using your product
 ## Immediate Next Steps
 1) Supplier data: structured CSVs using `docs/supplier-intake.md` (see `sample-data/supplier-*.csv` as examples).
 2) Payments: Paystack first; enable Flutterwave later behind the gateway abstraction.
-3) Shipping/tax: confirm any local courier APIs; otherwise we’ll use rate tables + VAT tables.
-4) Run locally: `cp .env.example .env` then `docker compose up --build` (web at 3000, api at 3001, Postgres 5432, Redis 6379, MinIO 9000/9001).
+3) Shipping/tax: confirm any local courier APIs; otherwise we'll use rate tables + VAT tables.
+4) Run locally: `cp .env.example .env`, then `docker compose up --build`, then `pnpm db:setup` (web at 3000, api at 3001, Postgres 5432, Redis 6379, MinIO 9000/9001).
+5) Roadmap: see `docs/ROADMAP.md` for the phased plan and status.
 
 ## How to Use (planned)
 - Frontend consumes REST API; all calls scoped by org. A lightweight public catalog read endpoint can be added later.

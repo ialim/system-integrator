@@ -101,6 +101,12 @@ export function Header({ user }: HeaderProps) {
               <MenuItem as={Link} href="/projects" bg="var(--panel)" color="var(--text)">
                 Projects
               </MenuItem>
+              <MenuItem as={Link} href="/settings/security" bg="var(--panel)" color="var(--text)">
+                Security settings
+              </MenuItem>
+              <MenuItem as={Link} href="/settings/team" bg="var(--panel)" color="var(--text)">
+                Team settings
+              </MenuItem>
               <form action={logoutAction}>
                 <MenuItem as="button" type="submit" bg="var(--panel)" color="var(--text)">
                   Logout

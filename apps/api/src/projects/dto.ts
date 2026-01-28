@@ -1,4 +1,4 @@
-import { IsInt, IsNotEmpty, IsOptional, IsString, Min, IsObject } from 'class-validator';
+import { IsInt, IsNotEmpty, IsOptional, IsString, Min, IsObject, IsNumber } from 'class-validator';
 
 export class CreateProjectDto {
   @IsString()
@@ -8,6 +8,25 @@ export class CreateProjectDto {
   @IsOptional()
   @IsObject()
   clientMeta?: Record<string, any>;
+
+  @IsOptional()
+  @IsObject()
+  proposalMeta?: Record<string, any>;
+}
+
+export class UpdateProjectDto {
+  @IsOptional()
+  @IsString()
+  @IsNotEmpty()
+  name?: string;
+
+  @IsOptional()
+  @IsObject()
+  clientMeta?: Record<string, any>;
+
+  @IsOptional()
+  @IsObject()
+  proposalMeta?: Record<string, any> | null;
 }
 
 export class AddLineItemDto {
@@ -48,6 +67,11 @@ export class UpdateLineItemDto {
   @IsOptional()
   @IsInt()
   roomId?: number;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  unitPrice?: number | null;
 
   @IsOptional()
   @IsString()

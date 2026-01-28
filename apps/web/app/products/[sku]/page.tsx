@@ -1,6 +1,6 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { Badge, Box, Button, Grid, HStack, Stack, Text, Textarea, Select, Input } from "@chakra-ui/react";
+import { Badge, Box, Button, Grid, HStack, Stack, Text, Textarea, Select, Input, Image, Table, Thead, Tbody, Tr, Th, Td } from "@chakra-ui/react";
 import { fetchProduct, fetchProductFamilies } from "../../../lib/products";
 import { addLineItem, fetchProjects } from "../../../lib/projects";
 import { fetchProfile } from "../../../lib/auth";
@@ -37,12 +37,33 @@ export default async function ProductPage({ params }: { params: { sku: string } 
     }
   }
 
+  const mediaUrls = getMediaUrls(product, familyGroup?.family?.defaultImage);
+
   return (
     <main style={{ minHeight: "80vh" }}>
       <Stack spacing="4">
         <Box bg="var(--panel)" border="1px solid var(--border)" borderRadius="16px" p="5">
-          <Stack direction="row" justify="space-between" align="start">
-            <Box>
+          <Stack direction={{ base: "column", lg: "row" }} spacing="6" justify="space-between" align="start">
+            <Stack spacing="3" minW={{ base: "100%", lg: "320px" }} maxW={{ base: "100%", lg: "360px" }}>
+              <Box borderRadius="14px" overflow="hidden" border="1px solid var(--border)" bg="rgba(255,255,255,0.03)" h="240px">
+                <Image src={mediaUrls[0]} alt={product.name} objectFit="cover" w="100%" h="100%" />
+              </Box>
+              {mediaUrls.length > 1 && (
+                <HStack spacing="2" flexWrap="wrap">
+                  {mediaUrls.slice(1, 5).map((url) => (
+                    <Box key={url} border="1px solid var(--border)" borderRadius="10px" overflow="hidden" w="70px" h="54px" bg="rgba(255,255,255,0.03)">
+                      <Image src={url} alt={`${product.name} thumbnail`} objectFit="cover" w="100%" h="100%" />
+                    </Box>
+                  ))}
+                </HStack>
+              )}
+              {product.datasheetUrl && (
+                <Button as="a" href={product.datasheetUrl} target="_blank" rel="noreferrer" variant="outline" borderColor="var(--border)" color="var(--text)" size="sm">
+                  View datasheet
+                </Button>
+              )}
+            </Stack>
+            <Box flex="1">
               <Text fontSize="lg" fontWeight="700" m="0">
                 {product.name}
               </Text>
@@ -67,7 +88,7 @@ export default async function ProductPage({ params }: { params: { sku: string } 
                 ))}
               </HStack>
             </Box>
-            <Stack align="flex-end" spacing="2">
+            <Stack align={{ base: "flex-start", lg: "flex-end" }} spacing="2">
               <Text color="var(--accent)" fontWeight="700" fontSize="xl">
                 {product.currency || ""} {product.msrp || product.unitCost || ""}
               </Text>
@@ -132,6 +153,14 @@ export default async function ProductPage({ params }: { params: { sku: string } 
               </Stack>
             </Box>
           )}
+          {familyGroup && familyGroup.variants.length > 1 && (
+            <Box bg="var(--panel)" border="1px solid var(--border)" borderRadius="16px" p="5">
+              <Text fontWeight="700" mb="2">
+                Compare variants
+              </Text>
+              <VariantComparison variants={familyGroup.variants} currency={product.currency || "NGN"} />
+            </Box>
+          )}
           {user?.role === "OWNER" && (
             <Box bg="var(--panel)" border="1px solid var(--border)" borderRadius="16px" p="5">
               <Text fontWeight="700" mb="2">
@@ -184,5 +213,64 @@ function AddToProjectForm({ productId, projects }: { productId: number; projects
         </Button>
       </Stack>
     </form>
+  );
+}
+
+function getMediaUrls(product: any, fallback?: string | null) {
+  const placeholder = "/placeholder-product.svg";
+  const urls: string[] = [];
+  if (product?.imageUrl) urls.push(product.imageUrl);
+  if (Array.isArray(product?.media)) {
+    product.media.forEach((item: any) => {
+      if (typeof item === "string") {
+        urls.push(item);
+      } else if (item?.url) {
+        urls.push(item.url);
+      }
+    });
+  }
+  if (fallback) urls.push(fallback);
+  const unique = Array.from(new Set(urls.filter(Boolean)));
+  return unique.length ? unique : [placeholder];
+}
+
+function VariantComparison({ variants, currency }: { variants: any[]; currency: string }) {
+  const formatFacets = (list?: Array<{ key: string; value: string }>) => {
+    if (!list?.length) return "n/a";
+    return list.map((f) => `${f.key}: ${f.value}`).join(", ");
+  };
+  const formatPrice = (value: number, priceCurrency?: string) => {
+    if (!Number.isFinite(value)) return "n/a";
+    return `${priceCurrency || currency} ${Number(value).toLocaleString()}`;
+  };
+  return (
+    <Box overflowX="auto">
+      <Table size="sm" variant="simple">
+        <Thead>
+          <Tr>
+            <Th>SKU</Th>
+            <Th isNumeric>Price</Th>
+            <Th>Lead time</Th>
+            <Th>Stock</Th>
+            <Th>Variant facets</Th>
+          </Tr>
+        </Thead>
+        <Tbody>
+          {variants.map((variant) => {
+            const price = Number(variant.msrp ?? variant.unitCost ?? 0);
+            const priceCurrency = variant.currency || currency;
+            return (
+              <Tr key={variant.sku}>
+                <Td fontWeight="600">{variant.sku}</Td>
+                <Td isNumeric>{formatPrice(price, priceCurrency)}</Td>
+                <Td>{variant.leadTimeDays ?? "n/a"} days</Td>
+                <Td>{variant.stockBand || "n/a"}</Td>
+                <Td>{formatFacets(variant.variantFacets || variant.facets)}</Td>
+              </Tr>
+            );
+          })}
+        </Tbody>
+      </Table>
+    </Box>
   );
 }

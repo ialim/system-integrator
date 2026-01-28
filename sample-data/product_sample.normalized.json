@@ -25,6 +25,9 @@
         "value": "grey"
       }
     ],
+    "imageUrl": null,
+    "datasheetUrl": null,
+    "media": null,
     "unitCost": 7750,
     "currency": "NGN",
     "msrp": 10100,
@@ -103,6 +106,9 @@
         "value": "eu"
       }
     ],
+    "imageUrl": null,
+    "datasheetUrl": null,
+    "media": null,
     "unitCost": 314000,
     "currency": "NGN",
     "msrp": 423900,
@@ -184,6 +190,9 @@
         "value": "as"
       }
     ],
+    "imageUrl": null,
+    "datasheetUrl": null,
+    "media": null,
     "unitCost": 314000,
     "currency": "NGN",
     "msrp": 423900,
@@ -265,6 +274,9 @@
         "value": "us"
       }
     ],
+    "imageUrl": null,
+    "datasheetUrl": null,
+    "media": null,
     "unitCost": 314000,
     "currency": "NGN",
     "msrp": 423900,
@@ -346,6 +358,9 @@
         "value": "golden"
       }
     ],
+    "imageUrl": null,
+    "datasheetUrl": null,
+    "media": null,
     "unitCost": 314000,
     "currency": "NGN",
     "msrp": 423900,
@@ -411,6 +426,9 @@
         "value": "white"
       }
     ],
+    "imageUrl": null,
+    "datasheetUrl": null,
+    "media": null,
     "unitCost": 89450,
     "currency": "NGN",
     "msrp": 120750,
@@ -476,6 +494,9 @@
         "value": "grey"
       }
     ],
+    "imageUrl": null,
+    "datasheetUrl": null,
+    "media": null,
     "unitCost": 89450,
     "currency": "NGN",
     "msrp": 120750,
@@ -545,6 +566,9 @@
         "value": "white"
       }
     ],
+    "imageUrl": null,
+    "datasheetUrl": null,
+    "media": null,
     "unitCost": 99200,
     "currency": "NGN",
     "msrp": 133900,
@@ -614,6 +638,9 @@
         "value": "golden"
       }
     ],
+    "imageUrl": null,
+    "datasheetUrl": null,
+    "media": null,
     "unitCost": 99200,
     "currency": "NGN",
     "msrp": 133900,
@@ -687,6 +714,9 @@
         "value": "WiFi"
       }
     ],
+    "imageUrl": null,
+    "datasheetUrl": null,
+    "media": null,
     "unitCost": 46700,
     "currency": "NGN",
     "msrp": 58400,
@@ -760,6 +790,9 @@
         "value": "Zigbee"
       }
     ],
+    "imageUrl": null,
+    "datasheetUrl": null,
+    "media": null,
     "unitCost": 48700,
     "currency": "NGN",
     "msrp": 60900,
@@ -833,6 +866,9 @@
         "value": "WiFi"
       }
     ],
+    "imageUrl": null,
+    "datasheetUrl": null,
+    "media": null,
     "unitCost": 50700,
     "currency": "NGN",
     "msrp": 63400,
@@ -906,6 +942,9 @@
         "value": "Zigbee"
       }
     ],
+    "imageUrl": null,
+    "datasheetUrl": null,
+    "media": null,
     "unitCost": 52700,
     "currency": "NGN",
     "msrp": 65900,
@@ -975,6 +1014,9 @@
         "value": "alexa-built-in"
       }
     ],
+    "imageUrl": null,
+    "datasheetUrl": null,
+    "media": null,
     "unitCost": 129200,
     "currency": "NGN",
     "msrp": 174400,
@@ -1053,6 +1095,9 @@
         "value": "Android 8.1"
       }
     ],
+    "imageUrl": null,
+    "datasheetUrl": null,
+    "media": null,
     "unitCost": 158600,
     "currency": "NGN",
     "msrp": 206200,
@@ -1115,6 +1160,9 @@
         "value": "2"
       }
     ],
+    "imageUrl": null,
+    "datasheetUrl": null,
+    "media": null,
     "unitCost": 176900,
     "currency": "NGN",
     "msrp": 238800,

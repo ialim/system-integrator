@@ -1,0 +1,5 @@
+sku,supplier,supplier_sku,available_qty,lead_time_days,stock_band,updated_at
+SI-4CDH-EU-G,Golden Security,GS-4CDH,120,14,in-stock,2026-01-20
+SI-8-PRO-EU,Golden Security,TPA08-M3A,45,30,limited,2026-01-20
+SI-8-PRO-AS,Golden Security,TPA08-M3A,0,45,backorder,2026-01-20
+SI-8-PRO-US,Golden Security,TPA08-M3A,12,21,low,2026-01-20

@@ -6,12 +6,17 @@
   "scripts": {
     "dev:web": "pnpm --filter web dev",
     "dev:api": "pnpm --filter api start:dev",
+    "dev:worker": "pnpm --filter api worker:dev",
     "lint": "pnpm -r lint",
     "format": "pnpm -r format",
     "seed:products": "node scripts/import-product-sample.mjs",
     "seed:products:sql": "node scripts/generate-product-seed-sql.mjs",
     "seed:products:db": "node scripts/seed-products-prisma.mjs",
-    "prisma:generate": "prisma generate"
+    "supplier:sync": "node scripts/sync-supplier-inventory.mjs",
+    "prisma:generate": "prisma generate",
+    "db:migrate": "prisma migrate deploy",
+    "db:seed": "pnpm --filter api seed:products",
+    "db:setup": "pnpm db:migrate && pnpm db:seed"
   },
   "dependencies": {
     "@prisma/client": "5.22.0",

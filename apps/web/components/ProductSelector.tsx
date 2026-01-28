@@ -127,7 +127,7 @@ export function ProductSelector({ onSelect, defaultQty = 1, variant = "grid", sh
                 </Box>
                 <Stack align="flex-end" spacing="1">
                   <Text color="var(--accent)" fontWeight="700" fontSize="sm">
-                    {price ? `${p.currency || ""} ${price}` : "—"}
+                    {price ? `${p.currency || ""} ${price}` : "n/a"}
                   </Text>
                   <Button size="sm" bg="var(--primary)" color="#fff" onClick={() => onSelect(p.id!, qty)}>
                     Add

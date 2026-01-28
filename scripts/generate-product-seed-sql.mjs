@@ -34,6 +34,9 @@ CREATE TABLE IF NOT EXISTS products (
   description TEXT,
   category TEXT,
   family_id INTEGER,
+  image_url TEXT,
+  datasheet_url TEXT,
+  media JSONB,
   unit_cost NUMERIC,
   currency TEXT,
   msrp NUMERIC,
@@ -56,8 +59,21 @@ CREATE TABLE IF NOT EXISTS products (
 );
 
 ALTER TABLE products
-  ADD COLUMN IF NOT EXISTS family_id INTEGER,
-  ADD CONSTRAINT products_family_id_fkey FOREIGN KEY (family_id) REFERENCES product_families(id) ON DELETE SET NULL ON UPDATE CASCADE;
+  ADD COLUMN IF NOT EXISTS family_id INTEGER;
+
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1
+    FROM pg_constraint
+    WHERE conname = 'products_family_id_fkey'
+  ) THEN
+    ALTER TABLE products
+      ADD CONSTRAINT products_family_id_fkey
+      FOREIGN KEY (family_id) REFERENCES product_families(id)
+      ON DELETE SET NULL ON UPDATE CASCADE;
+  END IF;
+END $$;
 
 CREATE INDEX IF NOT EXISTS products_family_id_idx ON products(family_id);
 
@@ -95,9 +111,9 @@ const familyRows = Array.from(familyMap.values())
       defaultImage: f.defaultImage ? `'${sqlEscape(f.defaultImage)}'` : "NULL",
       attributes: f.attributes ? `'${sqlEscape(JSON.stringify(f.attributes))}'::jsonb` : "NULL"
     };
-    const columns = Object.keys(cols).join(", ");
-    const values = Object.values(cols).join(", ");
-    return `INSERT INTO product_families (${columns}) VALUES (${values}) ON CONFLICT (name, brand) DO UPDATE SET category = EXCLUDED.category, description = EXCLUDED.description, "defaultImage" = EXCLUDED."defaultImage", attributes = EXCLUDED.attributes;`;
+    const columns = ["name", "brand", "category", "description", "\"defaultImage\"", "attributes"];
+    const values = [cols.name, cols.brand, cols.category, cols.description, cols.defaultImage, cols.attributes].join(", ");
+    return `INSERT INTO product_families (${columns.join(", ")}) VALUES (${values}) ON CONFLICT (name, brand) DO UPDATE SET category = EXCLUDED.category, description = EXCLUDED.description, "defaultImage" = EXCLUDED."defaultImage", attributes = EXCLUDED.attributes;`;
   })
   .join("\n");
 
@@ -111,6 +127,9 @@ const rows = products
       family_id: p.familyName
         ? `(SELECT id FROM product_families WHERE name = '${sqlEscape(p.familyName)}' AND COALESCE(brand, '') = '${sqlEscape(p.familyBrand || "")}')`
         : "NULL",
+      image_url: p.imageUrl ? `'${sqlEscape(p.imageUrl)}'` : "NULL",
+      datasheet_url: p.datasheetUrl ? `'${sqlEscape(p.datasheetUrl)}'` : "NULL",
+      media: p.media ? `'${sqlEscape(JSON.stringify(p.media))}'::jsonb` : "NULL",
       unit_cost: p.unitCost ?? "NULL",
       currency: p.currency ? `'${sqlEscape(p.currency)}'` : "NULL",
       msrp: p.msrp ?? "NULL",
